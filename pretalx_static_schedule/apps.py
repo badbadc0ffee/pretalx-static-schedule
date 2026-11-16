@@ -17,9 +17,6 @@ class PluginApp(AppConfig):
         visible = True
         version = __version__
         category = "EXPORTER"
-        settings_links = [
-            (gettext_lazy("Settings"), "plugins:pretalx_static_schedule:settings", {})
-        ]
 
     def ready(self):
         from . import signals  # noqa: PLC0415, F401

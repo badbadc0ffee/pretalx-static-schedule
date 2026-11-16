@@ -35,6 +35,3 @@ Apply formatting::
 Run the same checks as CI, including package checks::
 
     just ci
-
-The generated Cookiecutter settings example is retained for bootstrap checks.
-It will be removed when plugin registration is implemented.
