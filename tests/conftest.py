@@ -1,13 +1,16 @@
 import datetime as dt
+from io import BytesIO
 
 import pytest
 from django.core import management
-from django_scopes import scopes_disabled
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django_scopes import scope, scopes_disabled
+from PIL import Image
 
 from pretalx.event.domain.event import initialise_event
 from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event, Organiser, Team
-from pretalx.person.models import SpeakerProfile, User
+from pretalx.person.models import ProfilePicture, SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import Room, TalkSlot
 from pretalx.submission.models import Submission, SubmissionStates, Track
@@ -95,6 +98,35 @@ def published_talk_slot(event):
         )
         freeze_schedule(event.wip_schedule, "1.0", notify_speakers=False)
     return slot
+
+
+@pytest.fixture
+def image_uploads(published_talk_slot, event):
+    data = BytesIO()
+    Image.new("RGB", (2, 2), "red").save(data, "PNG")
+    contents = data.getvalue()
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        event.logo.save("logo.png", SimpleUploadedFile("logo.png", contents))
+        event.header_image.save(
+            "header.png", SimpleUploadedFile("header.png", contents)
+        )
+        submission.image.save(
+            "session.png", SimpleUploadedFile("session.png", contents)
+        )
+        user = User.objects.create_user(email="speaker@example.org", name="Ada Example")
+        picture = ProfilePicture.objects.create(
+            user=user, avatar=SimpleUploadedFile("avatar.png", contents)
+        )
+        speaker = submission.sorted_speakers.first()
+        speaker.profile_picture = picture
+        speaker.save(update_fields=["profile_picture"])
+    return {
+        "logo": event.logo,
+        "header": event.header_image,
+        "session": submission.image,
+        "avatar": picture.avatar,
+    }, contents
 
 
 @pytest.fixture

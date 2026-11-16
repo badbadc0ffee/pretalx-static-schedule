@@ -1,8 +1,8 @@
 pretalx-static-schedule
 =======================
 
-A plugin project for exporting the current published pretalx schedule as static
-HTML pages.
+Exports the latest published pretalx schedule as static HTML pages in one ZIP
+archive.
 
 Installation
 ------------
@@ -10,6 +10,22 @@ Installation
 Install in the same Python environment as pretalx 2026.2.1::
 
     uv pip install -e .
+
+Export
+------
+
+Enable the plugin in the event settings. Publish a schedule. Open
+**Schedule → Export → More exports** and select **Static HTML (ZIP)**.
+
+ZIP contents
+------------
+
+* ``index.html``: schedule overview.
+* ``sessions/<code>.html``: session details.
+* ``assets/schedule.css``: stylesheet.
+* ``media/``: uploaded images and public files, when present.
+
+Extract the ZIP into a web server directory. Keep its directory structure.
 
 HTML templates
 --------------

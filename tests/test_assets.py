@@ -1,15 +1,12 @@
 import posixpath
 from html.parser import HTMLParser
-from io import BytesIO
 from urllib.parse import quote, unquote, urljoin, urlsplit
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django_scopes import scope
-from PIL import Image
 from pytest_django.asserts import assertInHTML
 
-from pretalx.person.models import ProfilePicture, User
 from pretalx.submission.models import Answer, Question, Resource, Track
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
@@ -27,35 +24,6 @@ class HTMLReferences(HTMLParser):
         self.references.extend(
             value for name, value in attrs if name in {"href", "src"}
         )
-
-
-@pytest.fixture
-def image_uploads(published_talk_slot, event):
-    data = BytesIO()
-    Image.new("RGB", (2, 2), "red").save(data, "PNG")
-    contents = data.getvalue()
-    with scope(event=event):
-        submission = published_talk_slot.submission
-        event.logo.save("logo.png", SimpleUploadedFile("logo.png", contents))
-        event.header_image.save(
-            "header.png", SimpleUploadedFile("header.png", contents)
-        )
-        submission.image.save(
-            "session.png", SimpleUploadedFile("session.png", contents)
-        )
-        user = User.objects.create_user(email="speaker@example.org", name="Ada Example")
-        picture = ProfilePicture.objects.create(
-            user=user, avatar=SimpleUploadedFile("avatar.png", contents)
-        )
-        speaker = submission.sorted_speakers.first()
-        speaker.profile_picture = picture
-        speaker.save(update_fields=["profile_picture"])
-    return {
-        "logo": event.logo,
-        "header": event.header_image,
-        "session": submission.image,
-        "avatar": picture.avatar,
-    }, contents
 
 
 def test_event_images_are_local(image_uploads, event):

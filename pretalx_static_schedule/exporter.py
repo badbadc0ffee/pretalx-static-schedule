@@ -1,7 +1,9 @@
 import posixpath
 import re
 from html import unescape
+from io import BytesIO
 from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.contrib.staticfiles import finders
 from django.template.loader import render_to_string
@@ -33,6 +35,13 @@ class StaticScheduleExporter(BaseExporter):
     def schedule(self, schedule):
         # pretalx assigns the schedule outside its render error handler.
         self._schedule = schedule
+
+    def render(self, request, **kwargs):
+        output = BytesIO()
+        with ZipFile(output, "w", compression=ZIP_DEFLATED) as archive:
+            for name, content in self.get_files().items():
+                archive.writestr(name, content)
+        return self.filename, self.content_type, output.getvalue()
 
     def get_files(self):
         schedule = self.schedule
