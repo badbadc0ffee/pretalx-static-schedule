@@ -1,13 +1,22 @@
-{% load i18n %}
+{% load i18n static_schedule %}
 <!DOCTYPE html>
 <html lang="{{ event.locale }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset_prefix }}assets/schedule.css">
     </head>
     <body>
+        {% local_asset event.header_image as header_image_url %}
+        {% if header_image_url %}<img
+                class="event-header-image"
+                src="{{ header_image_url }}"
+                alt="{{ event.name }}"
+            >{% endif %}
         <header>
+            {% local_asset event.logo as logo_url %}
+            {% if logo_url %}<img class="event-logo" src="{{ logo_url }}" alt="{{ event.name }}">{% endif %}
             {% block header %}{% endblock %}
             <p>{% blocktranslate with timezone=event.timezone %}Times are in {{ timezone }}.{% endblocktranslate %}</p>
         </header>

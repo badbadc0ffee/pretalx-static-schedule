@@ -98,7 +98,9 @@ def test_base_override_changes_both_pages(
     assert (
         Path(get_template("pretalx_static_schedule/base.html").origin.name) == override
     )
-    for content in files.values():
+    for name, content in files.items():
+        if not name.endswith(".html"):
+            continue
         html = content.decode("utf-8")
         assertInHTML(f"<p>Custom site {event.name}</p>", html)
         assertInHTML(

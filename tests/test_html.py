@@ -31,7 +31,7 @@ def test_empty_published_schedule(published_schedule, event):
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    assert list(files) == ["index.html"]
+    assert list(files) == ["assets/schedule.css", "index.html"]
     html = files["index.html"].decode("utf-8")
     assertInHTML(f"<h1>{event.name}</h1>", html)
     assert "Schedule version 1.0" in html
@@ -411,7 +411,9 @@ def test_default_html_is_valid_and_needs_no_javascript(published_talk_slot, even
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    for content in files.values():
+    for name, content in files.items():
+        if not name.endswith(".html"):
+            continue
         html = content.decode("utf-8")
         assert parse_html(html)
         assert "<!doctype html>" in html.lower()

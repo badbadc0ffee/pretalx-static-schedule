@@ -34,6 +34,16 @@ Both page templates extend ``base.html``. They use the ``title``, ``header`` and
 Keep links to exported pages and assets relative. Restart pretalx after changing
 templates. Django caches templates in production.
 
+The stylesheet is exported as ``assets/schedule.css``. Uploaded images and
+public files are copied into ``media/``. In an override, use the ``local_asset``
+template tag to copy an uploaded file and get its relative URL::
+
+    {% load static_schedule %}
+    {% local_asset submission.image as image_url %}
+    {% if image_url %}<img src="{{ image_url }}" alt="Session image">{% endif %}
+
+Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
+
 Development checks
 ------------------
 

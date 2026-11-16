@@ -1,0 +1,44 @@
+body {
+    max-width: 70rem;
+    margin: auto;
+    padding: 1rem;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+header,
+.schedule-day,
+.speaker,
+.resources {
+    margin-bottom: 2rem;
+}
+
+.session {
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.event-logo {
+    max-height: 9rem;
+    width: auto;
+}
+
+.event-header-image {
+    max-height: 20rem;
+    object-fit: cover;
+}
+
+.speaker-avatar {
+    max-width: 8rem;
+}
+
+pre {
+    overflow: auto;
+}

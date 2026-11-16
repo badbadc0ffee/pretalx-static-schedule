@@ -1,5 +1,5 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load i18n rich_text tz %}
+{% load i18n rich_text static_schedule tz %}
 {% block title %}{{ submission.title }} – {{ event.name }}{% endblock %}
 {% block header %}
     <a href="../index.html">{{ event.name }}</a>
@@ -31,6 +31,13 @@
             <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
         {% endif %}
         {% if submission.do_not_record %}<p>{% translate "Do not record this session." %}</p>{% endif %}
+        {% local_asset submission.image as image_url %}
+        {% if image_url %}
+            <a href="{{ image_url }}"><img
+                    src="{{ image_url }}"
+                    alt="{% translate 'This session’s header image' %}"
+                ></a>
+        {% endif %}
         <section class="abstract">{{ submission.abstract|rich_text_abslinks }}</section>
         <section class="description">{{ submission.description|rich_text_abslinks }}</section>
         {% if submission.public_answers %}
@@ -39,7 +46,10 @@
                     <dt>{{ answer.question.question }}</dt>
                     <dd>
                         {% if answer.question.variant == "file" %}
-                            {% if answer.answer_file %}{% translate "File provided" %}{% else %}{% translate "No file provided" %}{% endif %}
+                            {% local_asset answer.answer_file as answer_url %}
+                            {% if answer_url %}<a
+                                    href="{{ answer_url }}"
+                                >{% translate "File provided" %}</a>{% else %}{% translate "No file provided" %}{% endif %}
                         {% else %}
                             {% with value=answer.answer_string %}
                                 {% if value %}{{ value|rich_text_abslinks }}{% else %}{% translate "No response" %}{% endif %}
@@ -55,9 +65,12 @@
                 <ul>
                     {% for resource in submission.public_resources %}
                         <li>
-                            {% if resource.link %}<a
-                                    href="{{ resource.link }}"
-                                >{{ resource.description }}</a>{% else %}{{ resource.description }}{% endif %}
+                            {% if resource.link %}
+                                <a href="{{ resource.link }}">{{ resource.description }}</a>
+                            {% else %}
+                                {% local_asset resource.resource as resource_url %}
+                                <a href="{{ resource_url }}">{{ resource.description }}</a>
+                            {% endif %}
                             {% if resource.size %}({{ resource.size|filesizeformat }}){% endif %}
                         </li>
                     {% endfor %}
@@ -67,6 +80,14 @@
         {% for speaker in speakers %}
             <section class="speaker">
                 <h2>{{ speaker.profile.get_display_name }}</h2>
+                {% if event.cfp.request_avatar %}
+                    {% local_asset speaker.profile.avatar as avatar_url %}
+                    {% if avatar_url %}<img
+                            class="speaker-avatar"
+                            src="{{ avatar_url }}"
+                            alt="{{ speaker.profile.get_display_name }}"
+                        >{% endif %}
+                {% endif %}
                 <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
                 {% if speaker.other_submissions %}
                     <p>{% translate "This speaker also appears in:" %}</p>
