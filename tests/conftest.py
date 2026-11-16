@@ -7,8 +7,10 @@ from django_scopes import scopes_disabled
 from pretalx.event.domain.event import initialise_event
 from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event, Organiser, Team
-from pretalx.person.models import User
+from pretalx.person.models import SpeakerProfile, User
 from pretalx.schedule.domain.release import freeze_schedule
+from pretalx.schedule.models import Room, TalkSlot
+from pretalx.submission.models import Submission, SubmissionStates, Track
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -42,6 +44,7 @@ def event(organiser):
             is_public=True,
             slug="test",
             email="orga@orga.org",
+            timezone="Europe/Berlin",
             date_from=today,
             date_to=today + dt.timedelta(days=3),
             organiser=organiser,
@@ -59,6 +62,39 @@ def published_schedule(event):
     with scopes_disabled():
         schedule, _ = freeze_schedule(event.wip_schedule, "1.0", notify_speakers=False)
     return schedule
+
+
+@pytest.fixture
+def published_talk_slot(event):
+    with scopes_disabled():
+        speaker = SpeakerProfile.objects.create(
+            event=event, name="Ada Example", biography="Builds **small tools**."
+        )
+        submission = Submission.objects.create(
+            event=event,
+            code="TOOLS01",
+            title="Building <tools>",
+            submission_type=event.submission_types.first(),
+            track=Track.objects.create(event=event, name="Tools"),
+            state=SubmissionStates.CONFIRMED,
+            abstract="A **small** tool with a [project](https://example.org).",
+            description="A longer description of the tool.",
+            notes="Private organiser notes",
+            duration=30,
+        )
+        submission.speakers.add(speaker)
+        start = dt.datetime.combine(event.date_from, dt.time(10), tzinfo=event.tz)
+        slot = TalkSlot.objects.create(
+            schedule=event.wip_schedule,
+            submission=submission,
+            room=Room.objects.create(
+                event=event, name="Room A", description="Main hall"
+            ),
+            start=start,
+            end=start + dt.timedelta(minutes=45),
+        )
+        freeze_schedule(event.wip_schedule, "1.0", notify_speakers=False)
+    return slot
 
 
 @pytest.fixture
