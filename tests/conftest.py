@@ -8,6 +8,7 @@ from pretalx.event.domain.event import initialise_event
 from pretalx.event.domain.plugins import enable_plugin
 from pretalx.event.models import Event, Organiser, Team
 from pretalx.person.models import User
+from pretalx.schedule.domain.release import freeze_schedule
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -51,6 +52,13 @@ def event(organiser):
         for team in organiser.teams.all():
             team.limit_events.add(event)
     return event
+
+
+@pytest.fixture
+def published_schedule(event):
+    with scopes_disabled():
+        schedule, _ = freeze_schedule(event.wip_schedule, "1.0", notify_speakers=False)
+    return schedule
 
 
 @pytest.fixture
