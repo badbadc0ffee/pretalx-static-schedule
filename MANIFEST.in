@@ -1,0 +1,7 @@
+recursive-include pretalx_static_schedule/static *
+recursive-include pretalx_static_schedule/templates *
+exclude pretalx_static_schedule/locale/django.pot
+recursive-include pretalx_static_schedule/locale *
+recursive-include pretalx_static_schedule *.py
+include justfile
+include uv.lock
