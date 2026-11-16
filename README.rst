@@ -11,6 +11,29 @@ Install in the same Python environment as pretalx 2026.2.1::
 
     uv pip install -e .
 
+HTML templates
+--------------
+
+Use standard Django template overrides. Place files in
+``templates/pretalx_static_schedule/`` inside the configured pretalx data directory.
+These paths override the default templates:
+
+* ``pretalx_static_schedule/base.html``: shared HTML layout.
+* ``pretalx_static_schedule/schedule.html``: schedule overview.
+* ``pretalx_static_schedule/session.html``: session details.
+
+Both page templates extend ``base.html``. They use the ``title``, ``header`` and
+``content`` blocks. For example, add this to your override of ``schedule.html``::
+
+    {% extends "pretalx_static_schedule/schedule.html" %}
+    {% block content %}
+        {{ block.super }}
+        <p>Welcome to {{ event.name }}.</p>
+    {% endblock %}
+
+Keep links to exported pages and assets relative. Restart pretalx after changing
+templates. Django caches templates in production.
+
 Development checks
 ------------------
 

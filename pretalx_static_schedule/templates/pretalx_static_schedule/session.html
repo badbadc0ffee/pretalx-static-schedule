@@ -1,91 +1,82 @@
+{% extends "pretalx_static_schedule/base.html" %}
 {% load i18n rich_text tz %}
-<!DOCTYPE html>
-<html lang="{{ event.locale }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ submission.title }} – {{ event.name }}</title>
-    </head>
-    <body>
-        <header>
-            <a href="../index.html">{{ event.name }}</a>
-            <p>{% blocktranslate with timezone=event.timezone %}Times are in {{ timezone }}.{% endblocktranslate %}</p>
-        </header>
-        <main>
-            <article>
-                <h1>{{ submission.title }}</h1>
-                {% timezone event.timezone %}
-                    <ul class="session-times">
-                        {% for slot in slots %}
-                            <li>
-                                {{ slot.start|date:"DATE_FORMAT" }}:
-                                <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
-                                    datetime="{{ slot.end|date:'c' }}"
-                                >{{ slot.end|date:"H:i" }}</time>
-                                · {{ slot.duration }}
-                                {% translate "min" %},
-                                <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
-                                {% if slot.signup_status == "full" %}
-                                    <p>{% translate "This session is currently full." %}</p>
-                                {% elif slot.signup_status == "open" %}
-                                    <p>{% translate "This session requires attendees to sign up." %}</p>
-                                {% endif %}
-                            </li>
+{% block title %}{{ submission.title }} – {{ event.name }}{% endblock %}
+{% block header %}
+    <a href="../index.html">{{ event.name }}</a>
+{% endblock %}
+{% block content %}
+    <article>
+        <h1>{{ submission.title }}</h1>
+        {% timezone event.timezone %}
+            <ul class="session-times">
+                {% for slot in slots %}
+                    <li>
+                        {{ slot.start|date:"DATE_FORMAT" }}:
+                        <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
+                            datetime="{{ slot.end|date:'c' }}"
+                        >{{ slot.end|date:"H:i" }}</time>
+                        · {{ slot.duration }}
+                        {% translate "min" %},
+                        <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
+                        {% if slot.signup_status == "full" %}
+                            <p>{% translate "This session is currently full." %}</p>
+                        {% elif slot.signup_status == "open" %}
+                            <p>{% translate "This session requires attendees to sign up." %}</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endtimezone %}
+        {% if event.is_multilingual and event.cfp.request_content_locale %}
+            <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
+        {% endif %}
+        {% if submission.do_not_record %}<p>{% translate "Do not record this session." %}</p>{% endif %}
+        <section class="abstract">{{ submission.abstract|rich_text_abslinks }}</section>
+        <section class="description">{{ submission.description|rich_text_abslinks }}</section>
+        {% if submission.public_answers %}
+            <dl class="public-answers">
+                {% for answer in submission.public_answers %}
+                    <dt>{{ answer.question.question }}</dt>
+                    <dd>
+                        {% if answer.question.variant == "file" %}
+                            {% if answer.answer_file %}{% translate "File provided" %}{% else %}{% translate "No file provided" %}{% endif %}
+                        {% else %}
+                            {% with value=answer.answer_string %}
+                                {% if value %}{{ value|rich_text_abslinks }}{% else %}{% translate "No response" %}{% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </dd>
+                {% endfor %}
+            </dl>
+        {% endif %}
+        {% if submission.public_resources %}
+            <section class="resources">
+                <h2>{% translate "See also:" %}</h2>
+                <ul>
+                    {% for resource in submission.public_resources %}
+                        <li>
+                            {% if resource.link %}<a
+                                    href="{{ resource.link }}"
+                                >{{ resource.description }}</a>{% else %}{{ resource.description }}{% endif %}
+                            {% if resource.size %}({{ resource.size|filesizeformat }}){% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% for speaker in speakers %}
+            <section class="speaker">
+                <h2>{{ speaker.profile.get_display_name }}</h2>
+                <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
+                {% if speaker.other_submissions %}
+                    <p>{% translate "This speaker also appears in:" %}</p>
+                    <ul>
+                        {% for other in speaker.other_submissions %}
+                            <li><a href="{{ other.code }}.html">{{ other.title }}</a></li>
                         {% endfor %}
                     </ul>
-                {% endtimezone %}
-                {% if event.is_multilingual and event.cfp.request_content_locale %}
-                    <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
                 {% endif %}
-                {% if submission.do_not_record %}<p>{% translate "Do not record this session." %}</p>{% endif %}
-                <section class="abstract">{{ submission.abstract|rich_text_abslinks }}</section>
-                <section class="description">{{ submission.description|rich_text_abslinks }}</section>
-                {% if submission.public_answers %}
-                    <dl class="public-answers">
-                        {% for answer in submission.public_answers %}
-                            <dt>{{ answer.question.question }}</dt>
-                            <dd>
-                                {% if answer.question.variant == "file" %}
-                                    {% if answer.answer_file %}{% translate "File provided" %}{% else %}{% translate "No file provided" %}{% endif %}
-                                {% else %}
-                                    {% with value=answer.answer_string %}
-                                        {% if value %}{{ value|rich_text_abslinks }}{% else %}{% translate "No response" %}{% endif %}
-                                    {% endwith %}
-                                {% endif %}
-                            </dd>
-                        {% endfor %}
-                    </dl>
-                {% endif %}
-                {% if submission.public_resources %}
-                    <section class="resources">
-                        <h2>{% translate "See also:" %}</h2>
-                        <ul>
-                            {% for resource in submission.public_resources %}
-                                <li>
-                                    {% if resource.link %}<a
-                                            href="{{ resource.link }}"
-                                        >{{ resource.description }}</a>{% else %}{{ resource.description }}{% endif %}
-                                    {% if resource.size %}({{ resource.size|filesizeformat }}){% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </section>
-                {% endif %}
-                {% for speaker in speakers %}
-                    <section class="speaker">
-                        <h2>{{ speaker.profile.get_display_name }}</h2>
-                        <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
-                        {% if speaker.other_submissions %}
-                            <p>{% translate "This speaker also appears in:" %}</p>
-                            <ul>
-                                {% for other in speaker.other_submissions %}
-                                    <li><a href="{{ other.code }}.html">{{ other.title }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </section>
-                {% endfor %}
-            </article>
-        </main>
-    </body>
-</html>
+            </section>
+        {% endfor %}
+    </article>
+{% endblock %}

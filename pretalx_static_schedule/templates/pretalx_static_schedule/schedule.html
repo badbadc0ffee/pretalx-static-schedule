@@ -1,61 +1,50 @@
+{% extends "pretalx_static_schedule/base.html" %}
 {% load i18n rich_text tz %}
-<!DOCTYPE html>
-<html lang="{{ event.locale }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ event.name }} – {% translate "Schedule" %}</title>
-    </head>
-    <body>
-        <header>
-            <h1>{{ event.name }}</h1>
-            <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
-            <p>{% blocktranslate with timezone=event.timezone %}Times are in {{ timezone }}.{% endblocktranslate %}</p>
-        </header>
-        <main>
-            {% timezone event.timezone %}
-                {% for day in days %}
-                    <section class="schedule-day">
-                        <h2>
-                            <time datetime="{{ day.start|date:'Y-m-d' }}">{{ day.start|date:"l" }},
-                                {{ day.start|date:"DATE_FORMAT" }}</time>
-                        </h2>
-                        {% for slot in day.talks %}
-                            <article class="session">
-                                <p>
-                                    <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>
-                                    · {{ slot.duration }} {% translate "min" %}
-                                </p>
-                                {% if slot.submission %}
-                                    <h3>
-                                        <a
-                                            href="sessions/{{ slot.submission.code }}.html"
-                                        >{{ slot.submission.title }}</a>
-                                    </h3>
-                                    <p>{{ slot.submission.display_speaker_names }}</p>
-                                    <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
-                                    {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
-                                    {% if slot.submission.do_not_record %}<p>
-                                            {% translate "Do not record this session." %}
-                                        </p>{% endif %}
-                                    {% if slot.signup_status == "full" %}
-                                        <p>{% translate "This session is currently full." %}</p>
-                                    {% elif slot.signup_status == "open" %}
-                                        <p>{% translate "This session requires attendees to sign up." %}</p>
-                                    {% endif %}
-                                {% else %}
-                                    <h3>{{ slot.description }}</h3>
-                                {% endif %}
-                                <p>{{ slot.room.name }}</p>
-                            </article>
-                        {% empty %}
-                            <p>
-                                {% blocktranslate with day=day.start|date:"DATE_FORMAT" %}No sessions on {{ day }}.{% endblocktranslate %}
-                            </p>
-                        {% endfor %}
-                    </section>
+{% block title %}{{ event.name }} – {% translate "Schedule" %}{% endblock %}
+{% block header %}
+    <h1>{{ event.name }}</h1>
+    <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
+{% endblock %}
+{% block content %}
+    {% timezone event.timezone %}
+        {% for day in days %}
+            <section class="schedule-day">
+                <h2>
+                    <time datetime="{{ day.start|date:'Y-m-d' }}">{{ day.start|date:"l" }},
+                        {{ day.start|date:"DATE_FORMAT" }}</time>
+                </h2>
+                {% for slot in day.talks %}
+                    <article class="session">
+                        <p>
+                            <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>
+                            · {{ slot.duration }} {% translate "min" %}
+                        </p>
+                        {% if slot.submission %}
+                            <h3>
+                                <a href="sessions/{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
+                            </h3>
+                            <p>{{ slot.submission.display_speaker_names }}</p>
+                            <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
+                            {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
+                            {% if slot.submission.do_not_record %}<p>
+                                    {% translate "Do not record this session." %}
+                                </p>{% endif %}
+                            {% if slot.signup_status == "full" %}
+                                <p>{% translate "This session is currently full." %}</p>
+                            {% elif slot.signup_status == "open" %}
+                                <p>{% translate "This session requires attendees to sign up." %}</p>
+                            {% endif %}
+                        {% else %}
+                            <h3>{{ slot.description }}</h3>
+                        {% endif %}
+                        <p>{{ slot.room.name }}</p>
+                    </article>
+                {% empty %}
+                    <p>
+                        {% blocktranslate with day=day.start|date:"DATE_FORMAT" %}No sessions on {{ day }}.{% endblocktranslate %}
+                    </p>
                 {% endfor %}
-            {% endtimezone %}
-        </main>
-    </body>
-</html>
+            </section>
+        {% endfor %}
+    {% endtimezone %}
+{% endblock %}
