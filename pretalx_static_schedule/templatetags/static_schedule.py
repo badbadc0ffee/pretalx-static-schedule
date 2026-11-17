@@ -47,6 +47,11 @@ def local_asset(context, file):
     return context["asset_prefix"] + destination
 
 
+@register.filter
+def public_tags(submission):
+    return submission.tags.filter(is_public=True)
+
+
 @register.simple_tag(takes_context=True)
 def session_content(context, signal_name):
     submission = context["submission"]

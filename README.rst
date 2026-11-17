@@ -28,6 +28,7 @@ ZIP contents
 * ``sessions/<code>.html``: session details and public speaker information.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
+* ``assets/variables.css``: the original pretalx CSS variables.
 * ``media/``: uploaded images and public files, when present.
 
 Speaker pages include the biography, public photo, public answers and files,
@@ -35,6 +36,9 @@ and the speaker's sessions in the exported schedule.
 
 Session pages show the content language and assigned track, even when these
 fields are hidden on the public pages.
+
+Pages use the event's primary color. Session cards and track labels use the
+assigned track color. Public tags appear as badges with their assigned colors.
 
 Session pages include recording information from enabled recording providers.
 Recording descriptions and labels are kept as text. Links in provider HTML,
@@ -67,6 +71,7 @@ These paths override the default templates:
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
 * ``pretalx_static_schedule/session_summary.html``: session cards on overview and speaker pages.
+* ``pretalx_static_schedule/tags.html``: public tag badges.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
 

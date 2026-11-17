@@ -191,6 +191,7 @@ def test_local_recording_stays_external_in_any_directory(
         assert set(archive.namelist()) == {
             "index.html",
             "assets/schedule.css",
+            "assets/variables.css",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }
@@ -293,6 +294,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
     assert set(files) == {
         "index.html",
         "assets/schedule.css",
+        "assets/variables.css",
         "sessions/TOOLS01.html",
         "speakers/ADA0001.html",
     }
@@ -350,6 +352,7 @@ def test_organiser_download_includes_only_current_session_recordings(
         assert set(archive.namelist()) == {
             "index.html",
             "assets/schedule.css",
+            "assets/variables.css",
             "sessions/CURRENT1.html",
             "speakers/ADA0001.html",
         }
@@ -385,6 +388,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
         assert set(archive.namelist()) == {
             "index.html",
             "assets/schedule.css",
+            "assets/variables.css",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }

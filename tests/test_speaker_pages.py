@@ -35,7 +35,7 @@ def test_speaker_page_uses_the_shared_layout(published_speaker, event, tmp_path,
     assert page.title.get_text() == f"{name} – {event.name}"
     assert page.header.find("a")["href"] == "../index.html"
     assert page.header.find("a").get_text() == str(event.name)
-    assert page.find("link", rel="stylesheet")["href"] == "../assets/schedule.css"
+    assert page.find("link", rel="stylesheet", href="../assets/schedule.css")
     assert "Europe/Berlin" in page.header.get_text()
     assert parse_html(html)
     assert not page.find(["script", "form", "iframe"])
@@ -126,7 +126,7 @@ def test_empty_schedule_has_no_speaker_pages(published_schedule, event):
         SpeakerProfile.objects.create(event=event, name="Unused speaker")
         files = StaticScheduleExporter(event).get_files()
 
-    assert set(files) == {"index.html", "assets/schedule.css"}
+    assert set(files) == {"index.html", "assets/schedule.css", "assets/variables.css"}
 
 
 @pytest.mark.parametrize("has_biography", (True, False))

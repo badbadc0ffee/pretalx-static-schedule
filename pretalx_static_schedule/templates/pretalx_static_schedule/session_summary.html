@@ -1,5 +1,8 @@
 {% load i18n phrases rich_text %}
-<article class="session">
+<article
+    class="session"
+    style="--track-color: {% if slot.submission %}{{ slot.submission.track.color|default:'var(--color-primary)' }}{% else %}var(--color-grey-light){% endif %}"
+>
     {% if show_date %}
         <p><time datetime="{{ slot.start|date:'Y-m-d' }}">{{ slot.start|date:"DATE_FORMAT" }}</time></p>
     {% endif %}
@@ -18,7 +21,8 @@
                 {% endif %}{% endfor %}
         </p>
         <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
-        {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
+        {% if slot.submission.track %}<p class="track">{{ slot.submission.track.name }}</p>{% endif %}
+        {% include "pretalx_static_schedule/tags.html" with submission=slot.submission %}
         {% if slot.submission.do_not_record %}<p>
                 {% phrase "phrases.agenda.schedule_do_not_record" %}
             </p>{% endif %}

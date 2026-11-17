@@ -29,6 +29,7 @@ def test_render_returns_a_complete_zip(
     with ZipFile(BytesIO(data)) as archive:
         assert archive.namelist() == [
             "assets/schedule.css",
+            "assets/variables.css",
             "index.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
@@ -67,7 +68,11 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event):
         _, _, data = StaticScheduleExporter(event).render(request=None)
 
     with ZipFile(BytesIO(data)) as archive:
-        assert set(archive.namelist()) == {"index.html", "assets/schedule.css"}
+        assert set(archive.namelist()) == {
+            "index.html",
+            "assets/schedule.css",
+            "assets/variables.css",
+        }
         overview = archive.read("index.html").decode("utf-8")
     assert "Schedule version 1.0" in overview
     assert overview.count("No sessions on") == event.duration
@@ -113,6 +118,7 @@ def test_extracted_zip_includes_images_and_public_files(
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",
+            "assets/variables.css",
             *expected_uploads,
         }
         assert f"media/{private.resource.name}" not in archive.namelist()

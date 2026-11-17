@@ -77,7 +77,10 @@ class StaticScheduleExporter(BaseExporter):
         files = {
             "assets/schedule.css": Path(
                 finders.find("pretalx_static_schedule/schedule.css")
-            ).read_bytes()
+            ).read_bytes(),
+            "assets/variables.css": Path(
+                finders.find("common/css/_variables.css")
+            ).read_bytes(),
         }
         context = {
             "event": self.event,

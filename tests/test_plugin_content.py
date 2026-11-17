@@ -126,7 +126,8 @@ def test_plugin_information_keeps_formatting_and_removes_interactions(
     assert section.find("th").get_text() == "Capacity"
     assert section.find("td").get_text() == "40"
     assert section.find("a", href="https://example.org/handout").get_text() == "Handout"
-    assert not page.find(["script", "style", "form", "input", "button", "iframe"])
+    assert not section.find(["script", "style", "form", "input", "button", "iframe"])
+    assert not page.find(["script", "form", "input", "button", "iframe"])
     assert not any(
         name.startswith("on") for tag in page.find_all(True) for name in tag.attrs
     )
@@ -335,6 +336,7 @@ def test_remote_plugin_images_become_links(
     assert set(files) == {
         "index.html",
         "assets/schedule.css",
+        "assets/variables.css",
         "sessions/TOOLS01.html",
         "speakers/ADA0001.html",
     }
@@ -405,7 +407,7 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
         files = StaticScheduleExporter(event).get_files()
 
     assert seen == []
-    assert set(files) == {"index.html", "assets/schedule.css"}
+    assert set(files) == {"index.html", "assets/schedule.css", "assets/variables.css"}
     assert "Schedule version 2.0" in files["index.html"].decode("utf-8")
 
 

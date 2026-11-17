@@ -6,7 +6,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset_prefix }}assets/variables.css">
         <link rel="stylesheet" href="{{ asset_prefix }}assets/schedule.css">
+        <style>
+            :root {
+                --color-primary: {{ event.visible_primary_color }};
+                {% if event.primary_color_needs_dark_text %}--color-text-on-primary: var(--color-text);{% endif %}
+            }
+        </style>
     </head>
     <body>
         {% local_asset event.header_image as header_image_url %}

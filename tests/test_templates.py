@@ -9,7 +9,7 @@ from pytest_django.asserts import assertInHTML
 
 from pretalx.agenda.recording import BaseRecordingProvider
 from pretalx.agenda.signals import html_above_session_pages, register_recording_provider
-from pretalx.submission.models import Answer, Question
+from pretalx.submission.models import Answer, Question, Tag
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 
@@ -40,7 +40,7 @@ def test_default_templates(published_talk_slot, event):
     assert Path(get_template("pretalx_static_schedule/recording.html").origin.name) == (
         template_root / "pretalx_static_schedule/recording.html"
     )
-    for name in ("speaker_info.html", "session_summary.html"):
+    for name in ("speaker_info.html", "session_summary.html", "tags.html"):
         assert Path(get_template(f"pretalx_static_schedule/{name}").origin.name) == (
             template_root / f"pretalx_static_schedule/{name}"
         )
@@ -323,3 +323,31 @@ def test_custom_session_template_can_render_plugin_information(
     assertInHTML("<aside><p>Useful plugin information.</p></aside>", html)
     assert "<script" not in html
     assert "loadWidget" not in html
+
+
+@pytest.mark.parametrize(
+    "page", ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html")
+)
+def test_tags_template_override(published_talk_slot, event, template_directory, page):
+    template_name = "pretalx_static_schedule/tags.html"
+    override = template_directory / template_name
+    override.parent.mkdir()
+    override.write_text(
+        '{% load static_schedule %}<aside class="custom-tags">'
+        "{% for tag in submission|public_tags %}<p>{{ tag.tag }}</p>{% endfor %}</aside>",
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        published_talk_slot.submission.tags.add(
+            Tag.objects.create(
+                event=event, tag="Public tag", color="#123abc", is_public=True
+            ),
+            Tag.objects.create(event=event, tag="Private tag", color="#ef1234"),
+        )
+        files = StaticScheduleExporter(event).get_files()
+
+    assert Path(get_template(template_name).origin.name) == override
+    html = files[page].decode()
+    assertInHTML('<aside class="custom-tags"><p>Public tag</p></aside>', html)
+    assert "Private tag" not in html
+    assert 'class="tag-badge"' not in html

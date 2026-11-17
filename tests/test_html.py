@@ -33,7 +33,7 @@ def test_empty_published_schedule(published_schedule, event):
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    assert list(files) == ["assets/schedule.css", "index.html"]
+    assert list(files) == ["assets/schedule.css", "assets/variables.css", "index.html"]
     html = files["index.html"].decode("utf-8")
     assertInHTML(f"<h1>{event.name}</h1>", html)
     assert "Schedule version 1.0" in html
@@ -280,7 +280,8 @@ def test_session_track_is_exported_when_assigned(
 
     if has_track:
         assertInHTML(
-            "<p><strong>Track:</strong> Tools &amp; &lt;practice&gt;</p>", html
+            '<p class="track"><strong>Track:</strong> Tools &amp; &lt;practice&gt;</p>',
+            html,
         )
     else:
         assert "Track:" not in html

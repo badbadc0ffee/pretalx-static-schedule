@@ -1,0 +1,11 @@
+{% load static_schedule %}
+{% with tags=submission|public_tags %}
+    {% if tags %}
+        <p class="tags">
+            {% for tag in tags %}<span
+                    class="tag-badge"
+                    style="background-color: {{ tag.color }}"
+                >{{ tag.tag }}</span>{% endfor %}
+        </p>
+    {% endif %}
+{% endwith %}

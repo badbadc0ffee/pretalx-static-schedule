@@ -38,6 +38,7 @@ def test_zip_download_from_organiser_interface(published_speaker, event, orga_cl
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",
+            "assets/variables.css",
         }
         assert "Schedule version 1.0" in archive.read("index.html").decode("utf-8")
         assert "Ada Example" in archive.read("sessions/TOOLS01.html").decode("utf-8")
@@ -89,7 +90,11 @@ def test_download_uses_the_latest_published_schedule(
     response = orga_client.get(StaticScheduleExporter(event).urls.base)
     assert response.status_code == 200
     with ZipFile(BytesIO(response.content)) as archive:
-        assert set(archive.namelist()) == {"index.html", "assets/schedule.css"}
+        assert set(archive.namelist()) == {
+            "index.html",
+            "assets/schedule.css",
+            "assets/variables.css",
+        }
         html = archive.read("index.html").decode("utf-8")
         assert "Schedule version 2.0" in html
         assert "Schedule version 1.0" not in html
