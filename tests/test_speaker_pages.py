@@ -276,7 +276,7 @@ def test_overview_speaker_names_link_to_their_pages(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["index.html"], "html.parser")
-    links = page.select(".session > p:not(.track) > a")
+    links = page.select(".session > p:not(.track):not(.room) > a")
     assert len(links) == len(speakers)
     assert {(link["href"], link.get_text()) for link in links} == {
         (f"speakers/{speaker.code}.html", speaker.get_display_name())

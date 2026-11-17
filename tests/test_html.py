@@ -2,6 +2,7 @@ import datetime as dt
 from urllib.parse import quote
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import render_to_string
 from django.test.html import parse_html
@@ -81,7 +82,10 @@ def test_session_detail(published_talk_slot, event):
     )
     assert "45 min" in " ".join(html.split())
     assert "Room A" in html
-    assertInHTML('<span title="Main hall">Room A</span>', html)
+    assertInHTML(
+        f'<a class="room" href="../rooms/{published_talk_slot.room_id}.html" title="Main hall">Room A</a>',
+        html,
+    )
     assert "Ada Example" in html
     assertInHTML("<p>Builds <strong>small tools</strong>.</p>", html)
     assert "A longer description of the tool." in html
@@ -406,6 +410,11 @@ def test_hidden_or_unscheduled_sessions_are_not_exported(
 
     assert "sessions/HIDDEN1.html" not in files
     assert "Hidden session" not in files["index.html"].decode("utf-8")
+    assert all(
+        "Hidden session" not in BeautifulSoup(content, "html.parser").get_text()
+        for name, content in files.items()
+        if name.startswith("rooms/")
+    )
     assert "sessions/TOOLS01.html" in files
 
 
@@ -479,8 +488,11 @@ def test_pages_use_published_times_and_rooms(published_talk_slot, event):
 
     for name in ("index.html", "sessions/TOOLS01.html"):
         html = files[name].decode("utf-8")
-        assert "Room A" in html
-        assert "WIP room" not in html
+        page = BeautifulSoup(html, "html.parser")
+        assert {
+            room.get_text(strip=True)
+            for room in page.select(".session .room, .session-times .room")
+        } == {"Room A"}
         assertInHTML(
             f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
             html,

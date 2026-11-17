@@ -38,5 +38,10 @@
     {% else %}
         <h3>{{ slot.description }}</h3>
     {% endif %}
-    <p>{{ slot.room.name }}</p>
+    <p class="room">
+        <a
+            href="{{ asset_prefix }}rooms/{{ slot.room_id }}.html"
+            title="{{ slot.room.description|default:'' }}"
+        >{{ slot.room.name }}</a>
+    </p>
 </article>

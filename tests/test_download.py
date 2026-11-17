@@ -39,6 +39,7 @@ def test_zip_download_from_organiser_interface(
             "index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
+            f"rooms/{published_talk_slot.room_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",
@@ -98,6 +99,7 @@ def test_download_uses_the_latest_published_schedule(
             "index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
+            f"rooms/{published_talk_slot.room_id}.html",
             "assets/schedule.css",
             "assets/variables.css",
         }

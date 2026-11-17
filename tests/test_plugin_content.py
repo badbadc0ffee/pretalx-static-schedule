@@ -342,6 +342,7 @@ def test_remote_plugin_images_become_links(
         "index.html",
         *day_files,
         f"tracks/{published_talk_slot.submission.track_id}.html",
+        f"rooms/{published_talk_slot.room_id}.html",
         "assets/schedule.css",
         "assets/variables.css",
         "sessions/TOOLS01.html",
@@ -417,6 +418,7 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
     assert set(files) == {
         "index.html",
         f"tracks/{published_talk_slot.submission.track_id}.html",
+        f"rooms/{published_talk_slot.room_id}.html",
         "assets/schedule.css",
         "assets/variables.css",
         *day_files,

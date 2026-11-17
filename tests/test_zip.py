@@ -33,6 +33,7 @@ def test_render_returns_a_complete_zip(
             "index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
+            f"rooms/{published_talk_slot.room_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         ]
@@ -48,6 +49,7 @@ def test_render_returns_a_complete_zip(
         "days",
         "assets",
         "tracks",
+        "rooms",
         "sessions",
         "speakers",
     }
@@ -84,7 +86,7 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event, day
 
 
 def test_extracted_zip_includes_images_and_public_files(
-    image_uploads, published_speaker, event, tmp_path, day_files
+    image_uploads, published_talk_slot, published_speaker, event, tmp_path, day_files
 ):
     uploads, image_data = image_uploads
     with scope(event=event):
@@ -122,6 +124,7 @@ def test_extracted_zip_includes_images_and_public_files(
             "index.html",
             *day_files,
             f"tracks/{submission.track_id}.html",
+            f"rooms/{published_talk_slot.room_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",

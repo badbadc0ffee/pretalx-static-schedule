@@ -300,7 +300,7 @@ def test_all_speaker_appearances_use_current_published_slots(
             other_start.isoformat(),
             repeated_start.isoformat(),
         ]
-        assert [link["href"] for link in appearances.find_all("a")] == [
+        assert [link["href"] for link in appearances.select("li > a:not(.room)")] == [
             "TOOLS01.html",
             "OTHER01.html",
             "TOOLS01.html",

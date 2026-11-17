@@ -18,7 +18,11 @@
                         >{{ slot.end|date:"H:i" }}</time>
                         · {{ slot.duration }}
                         {% translate "min" %},
-                        <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
+                        <a
+                            class="room"
+                            href="../rooms/{{ slot.room_id }}.html"
+                            title="{{ slot.room.description|default:'' }}"
+                        >{{ slot.room.name }}</a>
                         {% if slot.signup_status == "full" %}
                             <p>{% translate "This session is currently full." %}</p>
                         {% elif slot.signup_status == "open" %}
@@ -86,7 +90,11 @@
                                         datetime="{{ slot.end|date:'c' }}"
                                     >{{ slot.end|date:"H:i" }}</time>
                                     · {{ slot.duration }} {% translate "min" %},
-                                    <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
+                                    <a
+                                        class="room"
+                                        href="../rooms/{{ slot.room_id }}.html"
+                                        title="{{ slot.room.description|default:'' }}"
+                                    >{{ slot.room.name }}</a>
                                 </li>
                             {% endfor %}
                         </ul>

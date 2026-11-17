@@ -138,10 +138,11 @@ def test_extracted_site_contains_the_public_page_information(
         recording_url = urljoin(
             submission.urls.public.full(), default_storage.url(recording_name)
         )
+        other_room = Room.objects.create(event=event, name="Room B")
         TalkSlot.objects.create(
             schedule=event.wip_schedule,
             submission=submission,
-            room=Room.objects.create(event=event, name="Room B"),
+            room=other_room,
             start=slot.start + dt.timedelta(days=1),
             end=slot.end + dt.timedelta(days=1),
         )
@@ -184,6 +185,8 @@ def test_extracted_site_contains_the_public_page_information(
             "index.html",
             *day_files,
             f"tracks/{submission.track_id}.html",
+            f"rooms/{slot.room_id}.html",
+            f"rooms/{other_room.pk}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }
