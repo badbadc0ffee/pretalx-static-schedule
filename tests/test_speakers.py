@@ -20,6 +20,49 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
+@pytest.mark.parametrize("repeated", (False, True))
+def test_one_speaker_submission_has_no_submission_list(
+    published_talk_slot, event, repeated
+):
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        speaker = submission.sorted_speakers.first()
+        if repeated:
+            TalkSlot.objects.create(
+                schedule=event.wip_schedule,
+                submission=submission,
+                room=published_talk_slot.room,
+                start=published_talk_slot.start + dt.timedelta(days=1),
+                end=published_talk_slot.end + dt.timedelta(days=1),
+            )
+            freeze_schedule(event.wip_schedule, "2.0", notify_speakers=False)
+        wip = Submission.objects.create(
+            event=event,
+            code="WIP001",
+            title="WIP appearance",
+            submission_type=submission.submission_type,
+            state=SubmissionStates.CONFIRMED,
+        )
+        wip.speakers.add(speaker)
+        TalkSlot.objects.create(
+            schedule=event.wip_schedule,
+            submission=wip,
+            room=published_talk_slot.room,
+            start=published_talk_slot.end,
+            end=published_talk_slot.end + dt.timedelta(minutes=30),
+        )
+        files = StaticScheduleExporter(event).get_files()
+
+    page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
+    section = page.find(id=f"speaker-{speaker.code}")
+    assert section.find("h2").get_text() == "Ada Example"
+    assertInHTML("<p>Builds <strong>small tools</strong>.</p>", str(section))
+    assert section.select_one(".speaker-sessions") is None
+    assert section.find("h3") is None
+    assert len(page.select(".session-times > li")) == (2 if repeated else 1)
+    assert "sessions/WIP001.html" not in files
+
+
 def test_public_speaker_answers(published_talk_slot, event):
     with scope(event=event):
         speaker = published_talk_slot.submission.sorted_speakers.first()
@@ -248,3 +291,10 @@ def test_all_speaker_appearances_use_current_published_slots(
     assert BeautifulSoup(
         files["sessions/OTHER01.html"].decode("utf-8"), "html.parser"
     ).find("a", href=f"TOOLS01.html#speaker-{speaker.code}")
+    bob = (
+        BeautifulSoup(files["sessions/OTHER01.html"], "html.parser")
+        .find("h2", string="Bob Example")
+        .parent
+    )
+    assert bob.select_one(".speaker-sessions") is None
+    assert bob.find("h3") is None

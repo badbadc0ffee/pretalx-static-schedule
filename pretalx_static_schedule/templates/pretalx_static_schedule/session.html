@@ -76,22 +76,24 @@
                 {% endif %}
                 <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
                 {% include "pretalx_static_schedule/answers.html" with answers=speaker.answers %}
-                <h3>{% translate "Sessions" %}</h3>
-                {% timezone event.timezone %}
-                    <ul class="speaker-sessions">
-                        {% for slot in speaker.slots %}
-                            <li>
-                                <a href="{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
-                                {{ slot.start|date:"DATE_FORMAT" }}:
-                                <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
-                                    datetime="{{ slot.end|date:'c' }}"
-                                >{{ slot.end|date:"H:i" }}</time>
-                                · {{ slot.duration }} {% translate "min" %},
-                                <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endtimezone %}
+                {% if speaker.submission_count > 1 %}
+                    <h3>{% translate "Sessions" %}</h3>
+                    {% timezone event.timezone %}
+                        <ul class="speaker-sessions">
+                            {% for slot in speaker.slots %}
+                                <li>
+                                    <a href="{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
+                                    {{ slot.start|date:"DATE_FORMAT" }}:
+                                    <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
+                                        datetime="{{ slot.end|date:'c' }}"
+                                    >{{ slot.end|date:"H:i" }}</time>
+                                    · {{ slot.duration }} {% translate "min" %},
+                                    <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endtimezone %}
+                {% endif %}
             </section>
         {% endfor %}
     </article>

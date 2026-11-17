@@ -115,6 +115,10 @@ class StaticScheduleExporter(BaseExporter):
                 }
                 for speaker in submission.sorted_speakers
             ]
+            for speaker in speakers:
+                speaker["submission_count"] = len(
+                    {slot.submission_id for slot in speaker["slots"]}
+                )
             files[f"sessions/{code}.html"] = render_to_string(
                 "pretalx_static_schedule/session.html",
                 context
