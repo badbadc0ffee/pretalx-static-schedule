@@ -223,6 +223,69 @@ def test_language_and_recording_flag(published_talk_slot, event):
         assert "This session will not be recorded." in files[name].decode("utf-8")
 
 
+@pytest.mark.parametrize("request_content_locale", (True, False))
+@pytest.mark.parametrize(
+    ("content_locales", "content_locale", "language"),
+    ((("en",), "en", "English"), (("en", "de"), "de", "Deutsch")),
+)
+def test_session_content_language_is_always_exported(
+    published_talk_slot,
+    event,
+    request_content_locale,
+    content_locales,
+    content_locale,
+    language,
+):
+    with scope(event=event):
+        event.content_locales = list(content_locales)
+        event.save(update_fields=["content_locales"])
+        event.cfp.fields["content_locale"]["visibility"] = (
+            "required" if request_content_locale else "do_not_ask"
+        )
+        event.cfp.save(update_fields=["fields"])
+        submission = published_talk_slot.submission
+        submission.content_locale = content_locale
+        submission.save(update_fields=["content_locale"])
+        html = (
+            StaticScheduleExporter(Event.objects.get(pk=event.pk))
+            .get_files()["sessions/TOOLS01.html"]
+            .decode("utf-8")
+        )
+
+    assertInHTML(f"<p><strong>Language:</strong> {language}</p>", html)
+
+
+@pytest.mark.parametrize("use_tracks", (True, False))
+@pytest.mark.parametrize("has_track", (True, False))
+def test_session_track_is_exported_when_assigned(
+    published_talk_slot, event, use_tracks, has_track
+):
+    with scope(event=event):
+        event.feature_flags["use_tracks"] = use_tracks
+        event.save(update_fields=["feature_flags"])
+        event.cfp.fields["track"]["visibility"] = "do_not_ask"
+        event.cfp.save(update_fields=["fields"])
+        submission = published_talk_slot.submission
+        if has_track:
+            submission.track.name = "Tools & <practice>"
+            submission.track.save(update_fields=["name"])
+        else:
+            submission.track = None
+            submission.save(update_fields=["track"])
+        html = (
+            StaticScheduleExporter(Event.objects.get(pk=event.pk))
+            .get_files()["sessions/TOOLS01.html"]
+            .decode("utf-8")
+        )
+
+    if has_track:
+        assertInHTML(
+            "<p><strong>Track:</strong> Tools &amp; &lt;practice&gt;</p>", html
+        )
+    else:
+        assert "Track:" not in html
+
+
 @pytest.mark.parametrize(
     ("full", "message"),
     (

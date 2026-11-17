@@ -29,6 +29,9 @@ ZIP contents
 * ``assets/schedule.css``: stylesheet.
 * ``media/``: uploaded images and public files, when present.
 
+Session pages show the content language and assigned track, even when these
+fields are hidden on the public pages.
+
 Session pages include recording information from enabled recording providers.
 Recording descriptions and labels are kept as text. Links in provider HTML,
 including iframe and media URLs, become ordinary links to the original site.

@@ -28,8 +28,9 @@
                 {% endfor %}
             </ul>
         {% endtimezone %}
-        {% if event.is_multilingual and event.cfp.request_content_locale %}
-            <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
+        <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
+        {% if submission.track %}
+            <p><strong>{% translate "Track" %}:</strong> {{ submission.track.name }}</p>
         {% endif %}
         {% if submission.do_not_record %}<p>{% phrase "phrases.agenda.schedule_do_not_record" %}</p>{% endif %}
         {% local_asset submission.image as image_url %}
