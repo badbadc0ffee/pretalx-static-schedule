@@ -162,6 +162,7 @@ def test_local_recording_stays_external_in_any_directory(
     url_form,
     media_url,
     custom_domain,
+    day_files,
 ):
     settings.MEDIA_URL = media_url
     with scope(event=event):
@@ -190,6 +191,7 @@ def test_local_recording_stays_external_in_any_directory(
         archive.extractall(tmp_path)
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "assets/schedule.css",
             "assets/variables.css",
             "sessions/TOOLS01.html",
@@ -284,7 +286,7 @@ def test_relative_provider_links_use_the_original_page_as_base(
 
 
 def test_recording_link_does_not_require_the_file_to_be_available(
-    published_talk_slot, published_speaker, event, recording_provider
+    published_talk_slot, published_speaker, event, recording_provider, day_files
 ):
     url = default_storage.url("recordings/unavailable.mp4")
     recording_provider(f'<video src="{url}"></video>')
@@ -293,6 +295,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
 
     assert set(files) == {
         "index.html",
+        *day_files,
         "assets/schedule.css",
         "assets/variables.css",
         "sessions/TOOLS01.html",
@@ -305,7 +308,12 @@ def test_recording_link_does_not_require_the_file_to_be_available(
 
 
 def test_organiser_download_includes_only_current_session_recordings(
-    published_talk_slot, published_speaker, event, recording_provider, orga_client
+    published_talk_slot,
+    published_speaker,
+    event,
+    recording_provider,
+    orga_client,
+    day_files,
 ):
     seen = recording_provider(
         '<iframe src="https://video.example.org/current"></iframe>'
@@ -351,6 +359,7 @@ def test_organiser_download_includes_only_current_session_recordings(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "assets/schedule.css",
             "assets/variables.css",
             "sessions/CURRENT1.html",
@@ -371,6 +380,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
     recording_provider,
     orga_client,
     settings,
+    day_files,
 ):
     settings.STORAGES = {
         **settings.STORAGES,
@@ -387,6 +397,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "assets/schedule.css",
             "assets/variables.css",
             "sessions/TOOLS01.html",

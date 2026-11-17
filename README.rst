@@ -25,6 +25,7 @@ ZIP contents
 ------------
 
 * ``index.html``: schedule overview.
+* ``days/<yy-mm-dd>.html``: one overview for each schedule day.
 * ``sessions/<code>.html``: session details and public speaker information.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
@@ -33,6 +34,9 @@ ZIP contents
 
 Speaker pages include the biography, public photo, public answers and files,
 and the speaker's sessions in the exported schedule.
+
+Day headings on the full overview link to the daily pages. Daily pages include
+empty days and link back to the full overview.
 
 Session pages show the content language and assigned track, even when these
 fields are hidden on the public pages.
@@ -66,7 +70,7 @@ Use standard Django template overrides. Place files in
 These paths override the default templates:
 
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
-* ``pretalx_static_schedule/schedule.html``: schedule overview.
+* ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.

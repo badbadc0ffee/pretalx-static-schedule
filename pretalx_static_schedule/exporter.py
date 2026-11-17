@@ -52,6 +52,7 @@ class StaticScheduleExporter(BaseExporter):
         days = list(ScheduleData(self.event, schedule=schedule, with_breaks=True).data)
         sessions = {}
         for day in days:
+            day["filename"] = f"days/{day['start']:%y-%m-%d}.html"
             day["talks"] = sorted(
                 [slot for room in day["rooms"] for slot in room["talks"]],
                 key=lambda slot: slot.start,
@@ -98,6 +99,11 @@ class StaticScheduleExporter(BaseExporter):
         files["index.html"] = render_to_string(
             "pretalx_static_schedule/schedule.html", context
         ).encode("utf-8")
+        for day in days:
+            files[day["filename"]] = render_to_string(
+                "pretalx_static_schedule/schedule.html",
+                context | {"days": [day], "overview_day": day, "asset_prefix": "../"},
+            ).encode("utf-8")
         speakers_by_code = {}
         for code, slots in sessions.items():
             submission = slots[0].submission
@@ -140,6 +146,7 @@ class StaticScheduleExporter(BaseExporter):
             ).encode("utf-8")
         for name in [
             "index.html",
+            *(day["filename"] for day in days),
             *(f"sessions/{code}.html" for code in sessions),
             *(f"speakers/{code}.html" for code in speakers_by_code),
         ]:

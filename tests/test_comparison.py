@@ -54,7 +54,13 @@ def test_export_language_matches_the_online_page(
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_extracted_site_contains_the_public_page_information(
-    image_uploads, event, orga_client, register_signal_handler, tmp_path, deployment
+    image_uploads,
+    event,
+    orga_client,
+    register_signal_handler,
+    tmp_path,
+    deployment,
+    day_files,
 ):
     uploads, image_data = image_uploads
     with scope(event=event):
@@ -176,6 +182,7 @@ def test_extracted_site_contains_the_public_page_information(
         names = set(archive.namelist())
         assert {name for name in names if name.endswith(".html")} == {
             "index.html",
+            *day_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }

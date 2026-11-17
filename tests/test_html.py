@@ -29,11 +29,16 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_empty_published_schedule(published_schedule, event):
+def test_empty_published_schedule(published_schedule, event, day_files):
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    assert list(files) == ["assets/schedule.css", "assets/variables.css", "index.html"]
+    assert list(files) == [
+        "assets/schedule.css",
+        "assets/variables.css",
+        "index.html",
+        *day_files,
+    ]
     html = files["index.html"].decode("utf-8")
     assertInHTML(f"<h1>{event.name}</h1>", html)
     assert "Schedule version 1.0" in html

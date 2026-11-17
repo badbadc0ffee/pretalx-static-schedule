@@ -121,12 +121,17 @@ def test_speaker_pages_use_only_current_published_sessions(
     assert f"speakers/{unused.code}.html" not in files
 
 
-def test_empty_schedule_has_no_speaker_pages(published_schedule, event):
+def test_empty_schedule_has_no_speaker_pages(published_schedule, event, day_files):
     with scope(event=event):
         SpeakerProfile.objects.create(event=event, name="Unused speaker")
         files = StaticScheduleExporter(event).get_files()
 
-    assert set(files) == {"index.html", "assets/schedule.css", "assets/variables.css"}
+    assert set(files) == {
+        "index.html",
+        "assets/schedule.css",
+        "assets/variables.css",
+        *day_files,
+    }
 
 
 @pytest.mark.parametrize("has_biography", (True, False))

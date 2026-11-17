@@ -13,7 +13,9 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_zip_download_from_organiser_interface(published_speaker, event, orga_client):
+def test_zip_download_from_organiser_interface(
+    published_speaker, event, orga_client, day_files
+):
     exporter = StaticScheduleExporter(event)
     listing = orga_client.get(event.orga_urls.schedule_export)
     assert listing.status_code == 200
@@ -35,6 +37,7 @@ def test_zip_download_from_organiser_interface(published_speaker, event, orga_cl
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",
@@ -81,7 +84,7 @@ def test_api_rejects_non_current_schedules(
 
 
 def test_download_uses_the_latest_published_schedule(
-    published_talk_slot, event, orga_client
+    published_talk_slot, event, orga_client, day_files
 ):
     with scope(event=event):
         event.wip_schedule.talks.update(room=None)
@@ -92,6 +95,7 @@ def test_download_uses_the_latest_published_schedule(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "assets/schedule.css",
             "assets/variables.css",
         }

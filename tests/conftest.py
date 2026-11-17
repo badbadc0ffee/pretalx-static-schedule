@@ -84,6 +84,14 @@ def published_schedule(event):
 
 
 @pytest.fixture
+def day_files(event):
+    return [
+        f"days/{event.date_from + dt.timedelta(days=offset):%y-%m-%d}.html"
+        for offset in range(event.duration)
+    ]
+
+
+@pytest.fixture
 def published_talk_slot(event):
     with scopes_disabled():
         speaker = SpeakerProfile.objects.create(

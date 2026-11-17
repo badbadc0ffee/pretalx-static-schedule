@@ -16,7 +16,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_render_returns_a_complete_zip(
-    published_talk_slot, published_speaker, event, tmp_path
+    published_talk_slot, published_speaker, event, tmp_path, day_files
 ):
     with scope(event=event), freeze_time("2026-01-15T12:30:00Z"):
         filename, content_type, data = StaticScheduleExporter(event).render(
@@ -31,6 +31,7 @@ def test_render_returns_a_complete_zip(
             "assets/schedule.css",
             "assets/variables.css",
             "index.html",
+            *day_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         ]
@@ -43,6 +44,7 @@ def test_render_returns_a_complete_zip(
 
     assert {path.name for path in root.iterdir()} == {
         "index.html",
+        "days",
         "assets",
         "sessions",
         "speakers",
@@ -63,13 +65,14 @@ def test_render_returns_a_complete_zip(
     assert b"body" in (root / "assets/schedule.css").read_bytes()
 
 
-def test_empty_published_schedule_has_a_valid_zip(published_schedule, event):
+def test_empty_published_schedule_has_a_valid_zip(published_schedule, event, day_files):
     with scope(event=event):
         _, _, data = StaticScheduleExporter(event).render(request=None)
 
     with ZipFile(BytesIO(data)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "assets/schedule.css",
             "assets/variables.css",
         }
@@ -79,7 +82,7 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event):
 
 
 def test_extracted_zip_includes_images_and_public_files(
-    image_uploads, published_speaker, event, tmp_path
+    image_uploads, published_speaker, event, tmp_path, day_files
 ):
     uploads, image_data = image_uploads
     with scope(event=event):
@@ -115,6 +118,7 @@ def test_extracted_zip_includes_images_and_public_files(
     with ZipFile(BytesIO(data)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            *day_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",

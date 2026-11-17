@@ -1,8 +1,15 @@
 {% extends "pretalx_static_schedule/base.html" %}
 {% load i18n tz %}
-{% block title %}{{ event.name }} – {% translate "Schedule" %}{% endblock %}
+{% block title %}
+    {{ event.name }} – {% translate "Schedule" %}{% if overview_day %}
+        – {{ overview_day.start.date|date:"Y-m-d" }}{% endif %}
+{% endblock %}
 {% block header %}
-    <h1>{{ event.name }}</h1>
+    <h1>
+        {% if overview_day %}<a
+                href="{{ asset_prefix }}index.html"
+            >{{ event.name }}</a>{% else %}{{ event.name }}{% endif %}
+    </h1>
     <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
 {% endblock %}
 {% block content %}
@@ -10,11 +17,13 @@
         {% for day in days %}
             <section class="schedule-day">
                 <h2>
-                    <time datetime="{{ day.start|date:'Y-m-d' }}">{{ day.start|date:"l" }},
-                        {{ day.start|date:"DATE_FORMAT" }}</time>
+                    <a href="{{ asset_prefix }}{{ day.filename }}"><time
+                            datetime="{{ day.start|date:'Y-m-d' }}"
+                        >{{ day.start|date:"l" }},
+                            {{ day.start|date:"DATE_FORMAT" }}</time></a>
                 </h2>
                 {% for slot in day.talks %}
-                    {% include "pretalx_static_schedule/session_summary.html" with session_prefix="sessions/" %}
+                    {% include "pretalx_static_schedule/session_summary.html" with session_prefix=asset_prefix|add:"sessions/" %}
                 {% empty %}
                     <p>
                         {% blocktranslate with day=day.start|date:"DATE_FORMAT" %}No sessions on {{ day }}.{% endblocktranslate %}

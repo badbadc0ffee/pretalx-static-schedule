@@ -317,7 +317,7 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
 
 @pytest.mark.parametrize("label", ("Equipment diagram", ""))
 def test_remote_plugin_images_become_links(
-    published_speaker, event, register_signal_handler, label
+    published_speaker, event, register_signal_handler, label, day_files
 ):
     def handler(signal, sender, **kwargs):
         return (
@@ -335,6 +335,7 @@ def test_remote_plugin_images_become_links(
     assert not page.find("img", src="https://external.example.org/diagram.png")
     assert set(files) == {
         "index.html",
+        *day_files,
         "assets/schedule.css",
         "assets/variables.css",
         "sessions/TOOLS01.html",
@@ -390,7 +391,7 @@ def test_only_enabled_plugins_add_session_information(
 
 
 def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
-    published_talk_slot, event, register_signal_handler
+    published_talk_slot, event, register_signal_handler, day_files
 ):
     seen = []
 
@@ -407,7 +408,12 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
         files = StaticScheduleExporter(event).get_files()
 
     assert seen == []
-    assert set(files) == {"index.html", "assets/schedule.css", "assets/variables.css"}
+    assert set(files) == {
+        "index.html",
+        "assets/schedule.css",
+        "assets/variables.css",
+        *day_files,
+    }
     assert "Schedule version 2.0" in files["index.html"].decode("utf-8")
 
 
