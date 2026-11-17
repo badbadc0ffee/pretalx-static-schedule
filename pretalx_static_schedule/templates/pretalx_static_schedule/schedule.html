@@ -13,26 +13,6 @@
     <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
 {% endblock %}
 {% block content %}
-    {% if rooms %}
-        <nav class="room-navigation" aria-label="{% translate 'Rooms' %}">
-            <h2>{% translate "Rooms" %}</h2>
-            <ul>
-                {% for room in rooms %}
-                    <li><a href="{{ asset_prefix }}rooms/{{ room.pk }}.html">{{ room.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </nav>
-    {% endif %}
-    {% if tracks %}
-        <nav class="track-navigation" aria-label="{% translate 'Tracks' %}">
-            <h2>{% translate "Tracks" %}</h2>
-            <ul>
-                {% for track in tracks %}
-                    <li><a href="{{ asset_prefix }}tracks/{{ track.pk }}.html">{{ track.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </nav>
-    {% endif %}
     {% timezone event.timezone %}
         {% for day in days %}
             <section class="schedule-day">

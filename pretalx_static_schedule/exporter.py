@@ -89,6 +89,7 @@ class StaticScheduleExporter(BaseExporter):
             "event": self.event,
             "schedule": schedule,
             "days": days,
+            "navigation_days": days,
             "tracks": tracks,
             "rooms": rooms,
             "asset_prefix": "",
@@ -101,7 +102,7 @@ class StaticScheduleExporter(BaseExporter):
             },
         }
         files["index.html"] = render_to_string(
-            "pretalx_static_schedule/schedule.html", context
+            "pretalx_static_schedule/schedule.html", context | {"is_overview": True}
         ).encode("utf-8")
         for day in days:
             files[day["filename"]] = render_to_string(

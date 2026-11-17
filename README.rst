@@ -37,19 +37,23 @@ ZIP contents
 Speaker pages include the biography, public photo, public answers and files,
 and the speaker's sessions in the exported schedule.
 
+Every page has lists of days, tracks and rooms above its session content.
+The current overview is highlighted; the other entries link to their pages.
+The day list includes an "All days" link to the full overview. Lists include
+empty days, tracks and rooms.
+
 Day headings on the full overview link to the daily pages. Daily pages include
 empty days and link back to the full overview.
 
 Track pages include the track description and its published sessions, grouped
-by schedule day. Tracks without sessions have an empty page. The overview lists
-all tracks, and track names on session and speaker pages link to their track
-pages. Track filenames use IDs, so renaming a track does not change its URL.
+by schedule day. Tracks without sessions have an empty page. Track names on
+session and speaker pages link to their track pages. Track filenames use IDs,
+so renaming a track does not change its URL.
 
 Room pages include the attendee description and published sessions and breaks,
-grouped by schedule day. Empty rooms have an empty page. Full and daily
-overviews list rooms in their configured order. Room names on session cards and
-detail pages link to their room overview. Room filenames use IDs, so renaming
-a room does not change its URL.
+grouped by schedule day. Empty rooms have an empty page. Rooms appear in their
+configured order. Room names on session cards and detail pages link to their
+room overview. Room filenames use IDs, so renaming a room does not change its URL.
 
 Session pages show the content language and assigned track, even when these
 fields are hidden on the public pages.
@@ -83,6 +87,7 @@ Use standard Django template overrides. Place files in
 These paths override the default templates:
 
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
+* ``pretalx_static_schedule/navigation.html``: shared day, track and room navigation.
 * ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
@@ -94,8 +99,9 @@ These paths override the default templates:
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
 
-The page templates extend ``base.html``. They use the ``title``, ``header`` and
-``content`` blocks. For example, add this to your override of ``schedule.html``::
+The page templates extend ``base.html``. They use the ``title``, ``header``,
+``navigation`` and ``content`` blocks. The ``navigation`` block includes the
+shared navigation template. For example, add this to your override of ``schedule.html``::
 
     {% extends "pretalx_static_schedule/schedule.html" %}
     {% block content %}

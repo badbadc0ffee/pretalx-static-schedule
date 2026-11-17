@@ -189,7 +189,7 @@ def test_content_links_to_exported_pages_are_relative(
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     refs = HTMLReferences(html).references
     assert "TOOLS01.html" in refs
-    assert refs.count("../index.html") == 3
+    assert refs.count("../index.html") == 4
     assert talk_url not in refs
     assert overview_url not in refs
     assert nojs_url not in refs

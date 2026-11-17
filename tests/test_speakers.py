@@ -348,5 +348,5 @@ def test_all_speaker_appearances_use_current_published_slots(
         assert card.find("time", attrs={"datetime": start.isoformat()})
         assert room in card.get_text()
         assert f"{duration} min" in card.get_text(" ", strip=True)
-    assert "Room A" not in speaker_page.get_text()
+    assert all("Room A" not in card.get_text() for card in cards)
     assert "WIP appearance" not in speaker_page.get_text()

@@ -28,6 +28,9 @@
             {% block header %}{% endblock %}
             <p>{% blocktranslate with timezone=event.timezone %}Times are in {{ timezone }}.{% endblocktranslate %}</p>
         </header>
-        <main>{% block content %}{% endblock %}</main>
+        <main>
+            {% block navigation %}{% include "pretalx_static_schedule/navigation.html" %}{% endblock %}
+            {% block content %}{% endblock %}
+        </main>
     </body>
 </html>
