@@ -7,6 +7,8 @@ from django.template.loader import get_template
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
 
+from pretalx.submission.models import Answer, Question
+
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 
 pytestmark = pytest.mark.django_db
@@ -29,6 +31,9 @@ def test_default_templates(published_talk_slot, event):
     )
     assert Path(get_template("pretalx_static_schedule/base.html").origin.name) == (
         template_root / "pretalx_static_schedule/base.html"
+    )
+    assert Path(get_template("pretalx_static_schedule/answers.html").origin.name) == (
+        template_root / "pretalx_static_schedule/answers.html"
     )
     for name, output, title in (
         ("schedule.html", "index.html", f"{event.name} – Schedule"),
@@ -142,3 +147,43 @@ def test_override_extends_default_page(
     assertInHTML(
         f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>', html
     )
+
+
+def test_answers_template_override(published_talk_slot, event, template_directory):
+    override = template_directory / "pretalx_static_schedule/answers.html"
+    override.parent.mkdir()
+    override.write_text(
+        '<aside class="custom-answers">{% for answer in answers %}'
+        "<p>{{ answer.question.question }}: {{ answer.answer }}</p>"
+        "{% endfor %}</aside>",
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        for target, obj in (
+            ("submission", submission),
+            ("speaker", submission.sorted_speakers.first()),
+        ):
+            question = Question.objects.create(
+                event=event,
+                question=target,
+                target=target,
+                variant="text",
+                is_public=True,
+            )
+            Answer.objects.create(
+                question=question, answer="Public answer", **{target: obj}
+            )
+        html = (
+            StaticScheduleExporter(event)
+            .get_files()["sessions/TOOLS01.html"]
+            .decode("utf-8")
+        )
+
+    assert (
+        Path(get_template("pretalx_static_schedule/answers.html").origin.name)
+        == override
+    )
+    assert html.count('class="custom-answers"') == 2
+    for target in ("submission", "speaker"):
+        assertInHTML(f"<p>{target}: Public answer</p>", html)

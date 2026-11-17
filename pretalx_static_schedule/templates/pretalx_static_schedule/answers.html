@@ -1,0 +1,28 @@
+{% load i18n rich_text static_schedule %}
+{% if answers %}
+    <dl class="public-answers">
+        {% for answer in answers %}
+            <dt>{{ answer.question.question }}</dt>
+            <dd>
+                {% if answer.question.variant == "file" %}
+                    {% local_asset answer.answer_file as answer_url %}
+                    {% if answer_url %}<a
+                            href="{{ answer_url }}"
+                        >{{ answer.answer_file }}</a>{% else %}{% translate "No file provided" %}{% endif %}
+                {% else %}
+                    {% with value=answer.answer_string|default_if_none:answer.answer %}
+                        {% if value %}
+                            {% if answer.question.variant == "choices" or answer.question.variant == "multiple_choice" %}
+                                {{ value }}
+                            {% else %}
+                                {{ value|rich_text_abslinks }}
+                            {% endif %}
+                        {% else %}
+                            {% translate "No response" %}
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </dd>
+        {% endfor %}
+    </dl>
+{% endif %}

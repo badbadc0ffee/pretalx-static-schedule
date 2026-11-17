@@ -40,33 +40,7 @@
         {% endif %}
         <section class="abstract">{{ submission.abstract|rich_text_abslinks }}</section>
         <section class="description">{{ submission.description|rich_text_abslinks }}</section>
-        {% if submission.public_answers %}
-            <dl class="public-answers">
-                {% for answer in submission.public_answers %}
-                    <dt>{{ answer.question.question }}</dt>
-                    <dd>
-                        {% if answer.question.variant == "file" %}
-                            {% local_asset answer.answer_file as answer_url %}
-                            {% if answer_url %}<a
-                                    href="{{ answer_url }}"
-                                >{{ answer.answer_file }}</a>{% else %}{% translate "No file provided" %}{% endif %}
-                        {% else %}
-                            {% with value=answer.answer_string|default_if_none:answer.answer %}
-                                {% if value %}
-                                    {% if answer.question.variant == "choices" or answer.question.variant == "multiple_choice" %}
-                                        {{ value }}
-                                    {% else %}
-                                        {{ value|rich_text_abslinks }}
-                                    {% endif %}
-                                {% else %}
-                                    {% translate "No response" %}
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
-                    </dd>
-                {% endfor %}
-            </dl>
-        {% endif %}
+        {% include "pretalx_static_schedule/answers.html" with answers=submission.public_answers %}
         {% if submission.public_resources %}
             <section class="resources">
                 <h2>{% translate "See also:" %}</h2>
@@ -86,25 +60,34 @@
             </section>
         {% endif %}
         {% for speaker in speakers %}
-            <section class="speaker">
+            <section class="speaker" id="speaker-{{ speaker.profile.code }}">
                 <h2>{{ speaker.profile.get_display_name }}</h2>
                 {% if event.cfp.request_avatar %}
                     {% local_asset speaker.profile.avatar as avatar_url %}
-                    {% if avatar_url %}<img
-                            class="speaker-avatar"
-                            src="{{ avatar_url }}"
-                            alt="{{ speaker.profile.get_display_name }}"
-                        >{% endif %}
+                    {% if avatar_url %}<a href="{{ avatar_url }}"><img
+                                class="speaker-avatar"
+                                src="{{ avatar_url }}"
+                                alt="{{ speaker.profile.get_display_name }}"
+                            ></a>{% endif %}
                 {% endif %}
                 <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
-                {% if speaker.other_submissions %}
-                    <p>{% translate "This speaker also appears in:" %}</p>
-                    <ul>
-                        {% for other in speaker.other_submissions %}
-                            <li><a href="{{ other.code }}.html">{{ other.title }}</a></li>
+                {% include "pretalx_static_schedule/answers.html" with answers=speaker.answers %}
+                <h3>{% translate "Sessions" %}</h3>
+                {% timezone event.timezone %}
+                    <ul class="speaker-sessions">
+                        {% for slot in speaker.slots %}
+                            <li>
+                                <a href="{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
+                                {{ slot.start|date:"DATE_FORMAT" }}:
+                                <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
+                                    datetime="{{ slot.end|date:'c' }}"
+                                >{{ slot.end|date:"H:i" }}</time>
+                                · {{ slot.duration }} {% translate "min" %},
+                                <span title="{{ slot.room.description|default:'' }}">{{ slot.room.name }}</span>
+                            </li>
                         {% endfor %}
                     </ul>
-                {% endif %}
+                {% endtimezone %}
             </section>
         {% endfor %}
     </article>

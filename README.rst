@@ -25,7 +25,7 @@ ZIP contents
 ------------
 
 * ``index.html``: schedule overview.
-* ``sessions/<code>.html``: session details.
+* ``sessions/<code>.html``: session details and public speaker information.
 * ``assets/schedule.css``: stylesheet.
 * ``media/``: uploaded images and public files, when present.
 
@@ -48,6 +48,7 @@ These paths override the default templates:
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
 * ``pretalx_static_schedule/schedule.html``: schedule overview.
 * ``pretalx_static_schedule/session.html``: session details.
+* ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 
 Both page templates extend ``base.html``. They use the ``title``, ``header`` and
 ``content`` blocks. For example, add this to your override of ``schedule.html``::
@@ -60,6 +61,9 @@ Both page templates extend ``base.html``. They use the ``title``, ``header`` and
 
 Keep links to exported pages and assets relative. Restart pretalx after changing
 templates. Django caches templates in production.
+
+Keep the ``speaker-{{ speaker.profile.code }}`` section IDs in custom session
+templates. Links to speaker profiles point to these sections.
 
 The stylesheet is exported as ``assets/schedule.css``. Uploaded images and
 public files are copied into ``media/``. In an override, use the ``local_asset``

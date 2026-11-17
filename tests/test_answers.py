@@ -10,6 +10,7 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
+@pytest.mark.parametrize("target", ("submission", "speaker"))
 @pytest.mark.parametrize(
     ("variant", "value"),
     (
@@ -22,14 +23,21 @@ pytestmark = pytest.mark.django_db
         ("datetime", ""),
     ),
 )
-def test_scalar_answers_match_online_page(published_talk_slot, event, variant, value):
+def test_scalar_answers_match_online_page(
+    published_talk_slot, event, variant, value, target
+):
     with scope(event=event):
+        obj = published_talk_slot.submission
+        if target == "speaker":
+            obj = obj.sorted_speakers.first()
         question = Question.objects.create(
-            event=event, question=f"Public {variant}", variant=variant, is_public=True
+            event=event,
+            question=f"Public {variant}",
+            variant=variant,
+            target=target,
+            is_public=True,
         )
-        answer = Answer.objects.create(
-            question=question, submission=published_talk_slot.submission, answer=value
-        )
+        answer = Answer.objects.create(question=question, answer=value, **{target: obj})
         online_answer = render_to_string(
             "common/question_answer.html", {"answer": answer}
         )
@@ -43,6 +51,7 @@ def test_scalar_answers_match_online_page(published_talk_slot, event, variant, v
     assertInHTML(online_answer, html)
 
 
+@pytest.mark.parametrize("target", ("submission", "speaker"))
 @pytest.mark.parametrize(
     ("variant", "labels"),
     (
@@ -50,14 +59,21 @@ def test_scalar_answers_match_online_page(published_talk_slot, event, variant, v
         ("multiple_choice", ("*Workshop*", "Q&A <session>")),
     ),
 )
-def test_choice_labels_match_online_page(published_talk_slot, event, variant, labels):
+def test_choice_labels_match_online_page(
+    published_talk_slot, event, variant, labels, target
+):
     with scope(event=event):
+        obj = published_talk_slot.submission
+        if target == "speaker":
+            obj = obj.sorted_speakers.first()
         question = Question.objects.create(
-            event=event, question="Format", variant=variant, is_public=True
+            event=event,
+            question="Format",
+            variant=variant,
+            target=target,
+            is_public=True,
         )
-        answer = Answer.objects.create(
-            question=question, submission=published_talk_slot.submission, answer=""
-        )
+        answer = Answer.objects.create(question=question, answer="", **{target: obj})
         for label in labels:
             answer.options.add(
                 AnswerOption.objects.create(question=question, answer=label)
@@ -75,15 +91,21 @@ def test_choice_labels_match_online_page(published_talk_slot, event, variant, la
     assertInHTML(f"<dd>{online_answer}</dd>", html)
 
 
+@pytest.mark.parametrize("target", ("submission", "speaker"))
 @pytest.mark.parametrize("variant", ("boolean", "choices", "multiple_choice"))
-def test_unanswered_typed_field(published_talk_slot, event, variant):
+def test_unanswered_typed_field(published_talk_slot, event, variant, target):
     with scope(event=event):
+        obj = published_talk_slot.submission
+        if target == "speaker":
+            obj = obj.sorted_speakers.first()
         question = Question.objects.create(
-            event=event, question=f"Public {variant}", variant=variant, is_public=True
+            event=event,
+            question=f"Public {variant}",
+            variant=variant,
+            target=target,
+            is_public=True,
         )
-        Answer.objects.create(
-            question=question, submission=published_talk_slot.submission, answer=""
-        )
+        Answer.objects.create(question=question, answer="", **{target: obj})
         html = (
             StaticScheduleExporter(event)
             .get_files()["sessions/TOOLS01.html"]

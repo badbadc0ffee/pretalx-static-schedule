@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from pretalx.common.exporter import BaseExporter
 from pretalx.schedule.interfaces.exporters import ScheduleData
+from pretalx.submission.domain.queries.question import public_answers_for_speaker
 
 
 class StaticScheduleExporter(BaseExporter):
@@ -62,6 +63,11 @@ class StaticScheduleExporter(BaseExporter):
             slots[0].submission.urls.public: f"sessions/{code}.html"
             for code, slots in sessions.items()
         }
+        for code, slots in sessions.items():
+            for speaker in slots[0].submission.sorted_speakers:
+                links.setdefault(
+                    speaker.urls.public, f"sessions/{code}.html#speaker-{speaker.code}"
+                )
         links |= {url.full(): destination for url, destination in links.items()}
         files = {
             "assets/schedule.css": Path(
@@ -84,12 +90,16 @@ class StaticScheduleExporter(BaseExporter):
             speakers = [
                 {
                     "profile": speaker,
-                    "other_submissions": [
-                        other[0].submission
-                        for other in sessions.values()
-                        if other[0].submission != submission
-                        and speaker in other[0].submission.sorted_speakers
-                    ],
+                    "answers": public_answers_for_speaker(speaker),
+                    "slots": sorted(
+                        [
+                            slot
+                            for other in sessions.values()
+                            if speaker in other[0].submission.sorted_speakers
+                            for slot in other
+                        ],
+                        key=lambda slot: slot.start,
+                    ),
                 }
                 for speaker in submission.sorted_speakers
             ]
