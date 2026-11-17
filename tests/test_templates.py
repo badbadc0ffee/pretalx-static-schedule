@@ -8,7 +8,7 @@ from django_scopes import scope
 from pytest_django.asserts import assertInHTML
 
 from pretalx.agenda.recording import BaseRecordingProvider
-from pretalx.agenda.signals import register_recording_provider
+from pretalx.agenda.signals import html_above_session_pages, register_recording_provider
 from pretalx.submission.models import Answer, Question
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
@@ -227,3 +227,29 @@ def test_recording_template_override(
         '<a href="https://video.example.org/watch/123">Custom Session video</a></aside>',
         html,
     )
+
+
+def test_custom_session_template_can_render_plugin_information(
+    published_talk_slot, event, template_directory, register_signal_handler
+):
+    def handler(signal, sender, **kwargs):
+        return "<p>Useful plugin information.</p><script>loadWidget()</script>"
+
+    register_signal_handler(html_above_session_pages, handler)
+    override = template_directory / "pretalx_static_schedule/session.html"
+    override.parent.mkdir()
+    override.write_text(
+        '{% extends "pretalx_static_schedule/base.html" %}{% load static_schedule %}'
+        "{% block content %}<h1>Custom {{ submission.title }}</h1>"
+        '<aside>{% session_content "pretalx.agenda.signals.html_above_session_pages" %}'
+        "</aside>{% endblock %}",
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    html = files["sessions/TOOLS01.html"].decode("utf-8")
+    assertInHTML("<h1>Custom Building &lt;tools&gt;</h1>", html)
+    assertInHTML("<aside><p>Useful plugin information.</p></aside>", html)
+    assert "<script" not in html
+    assert "loadWidget" not in html

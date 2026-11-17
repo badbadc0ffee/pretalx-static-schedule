@@ -1,11 +1,12 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load i18n rich_text static_schedule tz %}
+{% load i18n phrases rich_text static_schedule tz %}
 {% block title %}{{ submission.title }} – {{ event.name }}{% endblock %}
 {% block header %}
     <a href="../index.html">{{ event.name }}</a>
 {% endblock %}
 {% block content %}
     <article>
+        {% session_content "pretalx.agenda.signals.html_above_session_pages" %}
         <h1>{{ submission.title }}</h1>
         {% timezone event.timezone %}
             <ul class="session-times">
@@ -30,7 +31,7 @@
         {% if event.is_multilingual and event.cfp.request_content_locale %}
             <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
         {% endif %}
-        {% if submission.do_not_record %}<p>{% translate "Do not record this session." %}</p>{% endif %}
+        {% if submission.do_not_record %}<p>{% phrase "phrases.agenda.schedule_do_not_record" %}</p>{% endif %}
         {% local_asset submission.image as image_url %}
         {% if image_url %}
             <a href="{{ image_url }}"><img
@@ -60,6 +61,7 @@
                 </ul>
             </section>
         {% endif %}
+        {% session_content "pretalx.agenda.signals.html_below_session_pages" %}
         {% for speaker in speakers %}
             <section class="speaker" id="speaker-{{ speaker.profile.code }}">
                 <h2>{{ speaker.profile.get_display_name }}</h2>

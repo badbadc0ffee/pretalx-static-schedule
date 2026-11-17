@@ -220,7 +220,7 @@ def test_language_and_recording_flag(published_talk_slot, event):
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     assertInHTML("<p><strong>Language:</strong> English</p>", html)
     for name in ("index.html", "sessions/TOOLS01.html"):
-        assert "Do not record this session." in files[name].decode("utf-8")
+        assert "This session will not be recorded." in files[name].decode("utf-8")
 
 
 @pytest.mark.parametrize(

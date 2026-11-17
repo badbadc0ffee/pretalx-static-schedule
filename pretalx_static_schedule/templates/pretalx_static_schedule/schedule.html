@@ -1,5 +1,5 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load i18n rich_text tz %}
+{% load i18n phrases rich_text tz %}
 {% block title %}{{ event.name }} – {% translate "Schedule" %}{% endblock %}
 {% block header %}
     <h1>{{ event.name }}</h1>
@@ -27,7 +27,7 @@
                             <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
                             {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
                             {% if slot.submission.do_not_record %}<p>
-                                    {% translate "Do not record this session." %}
+                                    {% phrase "phrases.agenda.schedule_do_not_record" %}
                                 </p>{% endif %}
                             {% if slot.signup_status == "full" %}
                                 <p>{% translate "This session is currently full." %}</p>

@@ -3,6 +3,7 @@ import re
 from html import unescape
 from io import BytesIO
 from pathlib import Path
+from urllib.parse import urlsplit
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from django.contrib.staticfiles import finders
@@ -70,6 +71,10 @@ class StaticScheduleExporter(BaseExporter):
                 links.setdefault(
                     speaker.urls.public, f"sessions/{code}.html#speaker-{speaker.code}"
                 )
+        recordings = {
+            code: recording_data(slots[0].submission)
+            for code, slots in sessions.items()
+        }
         links |= {url.full(): destination for url, destination in links.items()}
         files = {
             "assets/schedule.css": Path(
@@ -83,6 +88,11 @@ class StaticScheduleExporter(BaseExporter):
             "asset_prefix": "",
             "files": files,
             "links": links,
+            "recording_urls": {
+                urlsplit(link["url"])._replace(query="", fragment="").geturl()
+                for recording in recordings.values()
+                for link in recording["links"]
+            },
         }
         files["index.html"] = render_to_string(
             "pretalx_static_schedule/schedule.html", context
@@ -112,7 +122,7 @@ class StaticScheduleExporter(BaseExporter):
                     "submission": submission,
                     "slots": slots,
                     "speakers": speakers,
-                    "recording": recording_data(submission),
+                    "recording": recordings[code],
                     "asset_prefix": "../",
                 },
             ).encode("utf-8")

@@ -33,6 +33,11 @@ Session pages include recording information from enabled recording providers.
 Recording descriptions and labels are kept as text. Links in provider HTML,
 including iframe and media URLs, become ordinary links to the original site.
 
+Session pages also include public notes and content from enabled plugins above
+and below the session details. Text, basic formatting, tables and links are
+kept. Interactive widgets and online actions are removed. Local images are
+copied into the archive. Remote images become links to their original location.
+
 Extract the ZIP into a web server directory. Keep its directory structure.
 For example, if the server's document root is ``/var/www/html/``::
 
@@ -83,6 +88,12 @@ Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
 The recording template receives ``recording.text`` and ``recording.links``.
 Each link has ``url`` and ``label`` fields. Recording URLs point to their
 original location outside the archive.
+
+Custom session templates can include plugin content with these tags::
+
+    {% load static_schedule %}
+    {% session_content "pretalx.agenda.signals.html_above_session_pages" %}
+    {% session_content "pretalx.agenda.signals.html_below_session_pages" %}
 
 Development checks
 ------------------

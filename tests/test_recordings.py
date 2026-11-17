@@ -8,6 +8,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django_scopes import scope
 
 from pretalx.agenda.recording import BaseRecordingProvider, get_recording
@@ -15,7 +16,13 @@ from pretalx.agenda.signals import register_recording_provider
 from pretalx.common.urls import get_base_url
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import TalkSlot
-from pretalx.submission.models import Submission, SubmissionStates
+from pretalx.submission.models import (
+    Answer,
+    Question,
+    Resource,
+    Submission,
+    SubmissionStates,
+)
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 
@@ -371,3 +378,51 @@ def test_organiser_download_links_to_recording_without_copying_it(
         assert page.select_one(".recording a")["href"] == urljoin(
             published_talk_slot.submission.urls.public.full(), default_storage.url(name)
         )
+
+
+@pytest.mark.parametrize("attachment", ("resource", "answer"))
+@pytest.mark.parametrize("suffix", ("", "?download=1#t=30"))
+def test_recording_attachment_stays_outside_the_archive(
+    published_talk_slot, event, recording_provider, attachment, suffix
+):
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        upload = SimpleUploadedFile("session.mp4", b"Recorded session", "video/mp4")
+        if attachment == "resource":
+            recording = Resource.objects.create(
+                submission=submission,
+                description="Session recording",
+                is_public=True,
+                resource=upload,
+            ).resource
+        else:
+            question = Question.objects.create(
+                event=event,
+                question="Session recording",
+                target="submission",
+                variant="file",
+                is_public=True,
+            )
+            recording = Answer.objects.create(
+                submission=submission, question=question, answer_file=upload
+            ).answer_file
+        handout = Resource.objects.create(
+            submission=submission,
+            description="Handout",
+            is_public=True,
+            resource=SimpleUploadedFile("handout.txt", b"Public handout"),
+        ).resource
+        absolute = urljoin(get_base_url(event), recording.url)
+        recording_provider(
+            f'<video src="{absolute}{suffix}" title="Session recording"></video>'
+        )
+        _, content_type, data = StaticScheduleExporter(event).render(request=None)
+
+    assert content_type == "application/zip"
+    with ZipFile(BytesIO(data)) as archive:
+        assert f"media/{recording.name}" not in archive.namelist()
+        assert archive.read(f"media/{handout.name}") == b"Public handout"
+        page = BeautifulSoup(archive.read("sessions/TOOLS01.html"), "html.parser")
+    assert page.select_one(".recording a")["href"] == absolute + suffix
+    selector = ".resources a" if attachment == "resource" else ".public-answers a"
+    assert page.select_one(selector)["href"] == absolute
