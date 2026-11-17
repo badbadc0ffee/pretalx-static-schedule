@@ -87,8 +87,7 @@ custom session cards.
 Keep links to exported pages and assets relative. Restart pretalx after changing
 templates. Django caches templates in production.
 
-Keep the ``speaker-{{ speaker.profile.code }}`` section IDs in custom session
-templates. Links to speaker profiles point to these sections.
+Speaker names on the schedule overview link to ``speakers/<code>.html``.
 
 The stylesheet is exported as ``assets/schedule.css``. Uploaded images and
 public files are copied into ``media/``. In an override, use the ``local_asset``

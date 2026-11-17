@@ -55,7 +55,7 @@ def test_one_speaker_submission_has_no_submission_list(
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
     section = page.find(id=f"speaker-{speaker.code}")
-    assert section.find("h2").get_text() == "Ada Example"
+    assert section.find("h2").get_text(strip=True) == "Ada Example"
     assertInHTML("<p>Builds <strong>small tools</strong>.</p>", str(section))
     assert section.select_one(".speaker-sessions") is None
     assert section.find("h3") is None
@@ -150,7 +150,7 @@ def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, p
 
 @pytest.mark.parametrize("absolute", (False, True))
 @pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net"))
-def test_speaker_links_resolve_to_exported_sections(
+def test_speaker_links_resolve_to_exported_pages(
     published_talk_slot, event, absolute, custom_domain
 ):
     with scope(event=event):
@@ -161,6 +161,19 @@ def test_speaker_links_resolve_to_exported_sections(
         bob = SpeakerProfile.objects.create(event=event, name="Bob Example")
         ada_url = ada.urls.public.full() if absolute else ada.urls.public
         bob_url = bob.urls.public.full() if absolute else bob.urls.public
+        for speaker, name, url in ((ada, "Bob", bob_url), (bob, "Ada", ada_url)):
+            speaker.biography = f"[About {name}]({url})"
+            speaker.save(update_fields=["biography"])
+            question = Question.objects.create(
+                event=event,
+                question=f"{name}'s page",
+                target="speaker",
+                variant="text",
+                is_public=True,
+            )
+            Answer.objects.create(
+                speaker=speaker, question=question, answer=f"[{name}'s page]({url})"
+            )
         submission.description = f"[Bob's profile]({bob_url})"
         submission.save(update_fields=["description"])
         other = Submission.objects.create(
@@ -191,11 +204,15 @@ def test_speaker_links_resolve_to_exported_sections(
     assert pages["sessions/TOOLS01.html"].find(id=f"speaker-{ada.code}")
     assert pages["sessions/OTHER01.html"].find(id=f"speaker-{bob.code}")
     assert pages["sessions/TOOLS01.html"].find(
-        "a", href=f"OTHER01.html#speaker-{bob.code}"
+        "a", href=f"../speakers/{bob.code}.html", string="Bob's profile"
     )
     assert pages["sessions/OTHER01.html"].find(
-        "a", href=f"TOOLS01.html#speaker-{ada.code}"
+        "a", href=f"../speakers/{ada.code}.html", string="Ada's profile"
     )
+    for speaker, other, name in ((ada, bob, "Bob"), (bob, ada, "Ada")):
+        page = pages[f"speakers/{speaker.code}.html"]
+        for label in (f"About {name}", f"{name}'s page"):
+            assert page.find("a", href=f"{other.code}.html", string=label)
     for name, page in pages.items():
         for link in page.find_all("a", href=True):
             url = urlsplit(link["href"])
@@ -203,10 +220,15 @@ def test_speaker_links_resolve_to_exported_sections(
                 assert link["href"] == "https://example.org"
                 continue
             assert not url.path.startswith("/")
-            if url.fragment:
-                target = posixpath.normpath(
+            target = (
+                posixpath.normpath(
                     posixpath.join(posixpath.dirname(name), unquote(url.path))
                 )
+                if url.path
+                else name
+            )
+            assert target in files
+            if url.fragment:
                 assert pages[target].find(id=url.fragment)
 
 
@@ -299,11 +321,11 @@ def test_all_speaker_appearances_use_current_published_slots(
     assert "sessions/WIP001.html" not in files
     assert BeautifulSoup(
         files["sessions/OTHER01.html"].decode("utf-8"), "html.parser"
-    ).find("a", href=f"TOOLS01.html#speaker-{speaker.code}")
+    ).find("a", href=f"../speakers/{speaker.code}.html")
     bob = (
         BeautifulSoup(files["sessions/OTHER01.html"], "html.parser")
-        .find("h2", string="Bob Example")
-        .parent
+        .find("a", string="Bob Example")
+        .find_parent("section", class_="speaker")
     )
     assert bob.select_one(".speaker-sessions") is None
     assert bob.find("h3") is None

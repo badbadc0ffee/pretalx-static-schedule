@@ -65,7 +65,9 @@
         {% session_content "pretalx.agenda.signals.html_below_session_pages" %}
         {% for speaker in speakers %}
             <section class="speaker" id="speaker-{{ speaker.profile.code }}">
-                <h2>{{ speaker.profile.get_display_name }}</h2>
+                <h2>
+                    <a href="../speakers/{{ speaker.profile.code }}.html">{{ speaker.profile.get_display_name }}</a>
+                </h2>
                 {% include "pretalx_static_schedule/speaker_info.html" %}
                 {% if speaker.submission_count > 1 %}
                     <h3>{% translate "Sessions" %}</h3>

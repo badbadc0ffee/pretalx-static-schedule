@@ -218,3 +218,66 @@ def test_speaker_session_cards_contain_the_public_page_information(
     assert exported[0].find_all("time")[-1].get_text() == "10:00"
     assert "45 min" in exported[0].get_text(" ", strip=True)
     assert not page.find(["script", "form", "button", "iframe"])
+
+
+def test_session_speaker_names_link_to_their_pages(published_talk_slot, event):
+    with scope(event=event):
+        other = SpeakerProfile.objects.create(
+            event=event, code="BOB0001", name="Ada Example"
+        )
+        published_talk_slot.submission.speakers.add(other)
+        files = StaticScheduleExporter(event).get_files()
+
+    page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
+    assert {
+        (link["href"], link.get_text()) for link in page.select(".speaker > h2 > a")
+    } == {
+        ("../speakers/ADA0001.html", "Ada Example"),
+        ("../speakers/BOB0001.html", "Ada Example"),
+    }
+    for link in page.select(".speaker > h2 > a"):
+        target = "speakers/" + link["href"].removeprefix("../speakers/")
+        assert (
+            BeautifulSoup(files[target], "html.parser").find("h1").get_text()
+            == link.get_text()
+        )
+
+
+@pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net"))
+@pytest.mark.parametrize(
+    "names",
+    (
+        (),
+        ("Ada Example",),
+        ("Ada Example", "Ada Example"),
+        ("Ada & <team>", "Bob Example"),
+    ),
+)
+def test_overview_speaker_names_link_to_their_pages(
+    published_talk_slot, event, custom_domain, names
+):
+    with scope(event=event):
+        event.custom_domain = custom_domain
+        event.save(update_fields=["custom_domain"])
+        submission = published_talk_slot.submission
+        submission.speakers.clear()
+        speakers = [
+            SpeakerProfile.objects.create(
+                event=event, code=f"LINK{index:02d}", name=name
+            )
+            for index, name in enumerate(names)
+        ]
+        submission.speakers.add(*speakers)
+        files = StaticScheduleExporter(event).get_files()
+
+    page = BeautifulSoup(files["index.html"], "html.parser")
+    links = page.select(".session > p > a")
+    assert len(links) == len(speakers)
+    assert {(link["href"], link.get_text()) for link in links} == {
+        (f"speakers/{speaker.code}.html", speaker.get_display_name())
+        for speaker in speakers
+    }
+    for link in links:
+        target = BeautifulSoup(files[link["href"]], "html.parser")
+        assert target.h1.get_text() == link.get_text()
+    assert page.select_one(".session > h3 > a")["href"] == "sessions/TOOLS01.html"

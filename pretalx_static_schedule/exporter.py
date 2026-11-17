@@ -66,11 +66,9 @@ class StaticScheduleExporter(BaseExporter):
             slots[0].submission.urls.public: f"sessions/{code}.html"
             for code, slots in sessions.items()
         }
-        for code, slots in sessions.items():
+        for slots in sessions.values():
             for speaker in slots[0].submission.sorted_speakers:
-                links.setdefault(
-                    speaker.urls.public, f"sessions/{code}.html#speaker-{speaker.code}"
-                )
+                links[speaker.urls.public] = f"speakers/{speaker.code}.html"
         recordings = {
             code: recording_data(slots[0].submission)
             for code, slots in sessions.items()

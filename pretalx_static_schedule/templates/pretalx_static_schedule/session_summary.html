@@ -11,7 +11,12 @@
         <h3>
             <a href="{{ session_prefix }}{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
         </h3>
-        <p>{{ slot.submission.display_speaker_names }}</p>
+        <p>
+            {% for speaker in slot.submission.sorted_speakers %}<a
+                    href="{{ speaker.urls.public }}"
+                >{{ speaker.get_display_name }}</a>{% if not forloop.last %},
+                {% endif %}{% endfor %}
+        </p>
         <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
         {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
         {% if slot.submission.do_not_record %}<p>

@@ -177,7 +177,7 @@ def test_plugin_links_are_static_and_preserve_external_information(
     for label, target in (
         ("Schedule", "../index.html"),
         ("Session", "TOOLS01.html"),
-        ("Speaker", f"TOOLS01.html#speaker-{speaker.code}"),
+        ("Speaker", f"../speakers/{speaker.code}.html"),
         ("Equipment details", "#plugin-details"),
         (
             "Other public document",
