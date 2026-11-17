@@ -285,7 +285,7 @@ def test_session_track_is_exported_when_assigned(
 
     if has_track:
         assertInHTML(
-            '<p class="track"><strong>Track:</strong> Tools &amp; &lt;practice&gt;</p>',
+            f'<p class="track"><strong>Track:</strong> <a href="../tracks/{submission.track_id}.html">Tools &amp; &lt;practice&gt;</a></p>',
             html,
         )
     else:

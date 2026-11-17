@@ -183,6 +183,7 @@ def test_extracted_site_contains_the_public_page_information(
         assert {name for name in names if name.endswith(".html")} == {
             "index.html",
             *day_files,
+            f"tracks/{submission.track_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }

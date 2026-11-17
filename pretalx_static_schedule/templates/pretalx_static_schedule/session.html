@@ -30,7 +30,11 @@
         {% endtimezone %}
         <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
         {% if submission.track %}
-            <p class="track"><strong>{% translate "Track" %}:</strong> {{ submission.track.name }}</p>
+            <p class="track">
+                <strong>{% translate "Track" %}:</strong> <a
+                    href="../tracks/{{ submission.track_id }}.html"
+                >{{ submission.track.name }}</a>
+            </p>
         {% endif %}
         {% include "pretalx_static_schedule/tags.html" %}
         {% if submission.do_not_record %}<p>{% phrase "phrases.agenda.schedule_do_not_record" %}</p>{% endif %}

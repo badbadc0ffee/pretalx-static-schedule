@@ -14,7 +14,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_zip_download_from_organiser_interface(
-    published_speaker, event, orga_client, day_files
+    published_talk_slot, published_speaker, event, orga_client, day_files
 ):
     exporter = StaticScheduleExporter(event)
     listing = orga_client.get(event.orga_urls.schedule_export)
@@ -38,6 +38,7 @@ def test_zip_download_from_organiser_interface(
         assert set(archive.namelist()) == {
             "index.html",
             *day_files,
+            f"tracks/{published_talk_slot.submission.track_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",
@@ -96,6 +97,7 @@ def test_download_uses_the_latest_published_schedule(
         assert set(archive.namelist()) == {
             "index.html",
             *day_files,
+            f"tracks/{published_talk_slot.submission.track_id}.html",
             "assets/schedule.css",
             "assets/variables.css",
         }

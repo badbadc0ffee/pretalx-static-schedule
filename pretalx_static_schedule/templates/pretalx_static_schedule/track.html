@@ -1,0 +1,32 @@
+{% extends "pretalx_static_schedule/base.html" %}
+{% load i18n rich_text tz %}
+{% block title %}{{ track.name }} – {{ event.name }}{% endblock %}
+{% block header %}
+    <a href="../index.html">{{ event.name }}</a>
+    <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
+{% endblock %}
+{% block content %}
+    <article class="track-detail" style="--track-color: {{ track.color|default:'var(--color-primary)' }}">
+        <h1 class="track">{{ track.name }}</h1>
+        {% if track.description %}<section class="description">
+                {{ track.description|rich_text_abslinks }}
+            </section>{% endif %}
+        {% timezone event.timezone %}
+            {% for day in days %}
+                <section class="schedule-day">
+                    <h2>
+                        <a href="../{{ day.filename }}"><time
+                                datetime="{{ day.start|date:'Y-m-d' }}"
+                            >{{ day.start|date:"l" }},
+                                {{ day.start|date:"DATE_FORMAT" }}</time></a>
+                    </h2>
+                    {% for slot in day.talks %}
+                        {% include "pretalx_static_schedule/session_summary.html" with session_prefix="../sessions/" %}
+                    {% endfor %}
+                </section>
+            {% empty %}
+                <p>{% translate "No sessions in this track." %}</p>
+            {% endfor %}
+        {% endtimezone %}
+    </article>
+{% endblock %}

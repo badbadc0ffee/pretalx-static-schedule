@@ -32,6 +32,7 @@ def test_render_returns_a_complete_zip(
             "assets/variables.css",
             "index.html",
             *day_files,
+            f"tracks/{published_talk_slot.submission.track_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         ]
@@ -46,6 +47,7 @@ def test_render_returns_a_complete_zip(
         "index.html",
         "days",
         "assets",
+        "tracks",
         "sessions",
         "speakers",
     }
@@ -119,6 +121,7 @@ def test_extracted_zip_includes_images_and_public_files(
         assert set(archive.namelist()) == {
             "index.html",
             *day_files,
+            f"tracks/{submission.track_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
             "assets/schedule.css",

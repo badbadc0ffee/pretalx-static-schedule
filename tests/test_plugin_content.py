@@ -317,7 +317,12 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
 
 @pytest.mark.parametrize("label", ("Equipment diagram", ""))
 def test_remote_plugin_images_become_links(
-    published_speaker, event, register_signal_handler, label, day_files
+    published_talk_slot,
+    published_speaker,
+    event,
+    register_signal_handler,
+    label,
+    day_files,
 ):
     def handler(signal, sender, **kwargs):
         return (
@@ -336,6 +341,7 @@ def test_remote_plugin_images_become_links(
     assert set(files) == {
         "index.html",
         *day_files,
+        f"tracks/{published_talk_slot.submission.track_id}.html",
         "assets/schedule.css",
         "assets/variables.css",
         "sessions/TOOLS01.html",
@@ -410,6 +416,7 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
     assert seen == []
     assert set(files) == {
         "index.html",
+        f"tracks/{published_talk_slot.submission.track_id}.html",
         "assets/schedule.css",
         "assets/variables.css",
         *day_files,

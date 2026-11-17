@@ -74,6 +74,7 @@ class StaticScheduleExporter(BaseExporter):
             code: recording_data(slots[0].submission)
             for code, slots in sessions.items()
         }
+        tracks = list(self.event.tracks.order_by("position", "pk"))
         links |= {url.full(): destination for url, destination in links.items()}
         files = {
             "assets/schedule.css": Path(
@@ -87,6 +88,7 @@ class StaticScheduleExporter(BaseExporter):
             "event": self.event,
             "schedule": schedule,
             "days": days,
+            "tracks": tracks,
             "asset_prefix": "",
             "files": files,
             "links": links,
@@ -103,6 +105,20 @@ class StaticScheduleExporter(BaseExporter):
             files[day["filename"]] = render_to_string(
                 "pretalx_static_schedule/schedule.html",
                 context | {"days": [day], "overview_day": day, "asset_prefix": "../"},
+            ).encode("utf-8")
+        for track in tracks:
+            track_days = []
+            for day in days:
+                talks = [
+                    slot
+                    for slot in day["talks"]
+                    if slot.submission and slot.submission.track_id == track.pk
+                ]
+                if talks:
+                    track_days.append(day | {"talks": talks})
+            files[f"tracks/{track.pk}.html"] = render_to_string(
+                "pretalx_static_schedule/track.html",
+                context | {"track": track, "days": track_days, "asset_prefix": "../"},
             ).encode("utf-8")
         speakers_by_code = {}
         for code, slots in sessions.items():
@@ -147,6 +163,7 @@ class StaticScheduleExporter(BaseExporter):
         for name in [
             "index.html",
             *(day["filename"] for day in days),
+            *(f"tracks/{track.pk}.html" for track in tracks),
             *(f"sessions/{code}.html" for code in sessions),
             *(f"speakers/{code}.html" for code in speakers_by_code),
         ]:

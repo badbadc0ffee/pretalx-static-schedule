@@ -26,6 +26,7 @@ ZIP contents
 
 * ``index.html``: schedule overview.
 * ``days/<yy-mm-dd>.html``: one overview for each schedule day.
+* ``tracks/<id>.html``: one page for each track.
 * ``sessions/<code>.html``: session details and public speaker information.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
@@ -37,6 +38,11 @@ and the speaker's sessions in the exported schedule.
 
 Day headings on the full overview link to the daily pages. Daily pages include
 empty days and link back to the full overview.
+
+Track pages include the track description and its published sessions, grouped
+by schedule day. Tracks without sessions have an empty page. The overview lists
+all tracks, and track names on session and speaker pages link to their track
+pages. Track filenames use IDs, so renaming a track does not change its URL.
 
 Session pages show the content language and assigned track, even when these
 fields are hidden on the public pages.
@@ -73,8 +79,9 @@ These paths override the default templates:
 * ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
+* ``pretalx_static_schedule/track.html``: track pages.
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
-* ``pretalx_static_schedule/session_summary.html``: session cards on overview and speaker pages.
+* ``pretalx_static_schedule/session_summary.html``: session cards on overview, track and speaker pages.
 * ``pretalx_static_schedule/tags.html``: public tag badges.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.

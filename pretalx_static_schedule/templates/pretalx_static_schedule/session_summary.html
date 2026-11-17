@@ -21,7 +21,11 @@
                 {% endif %}{% endfor %}
         </p>
         <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
-        {% if slot.submission.track %}<p class="track">{{ slot.submission.track.name }}</p>{% endif %}
+        {% if slot.submission.track %}<p class="track">
+                <a
+                    href="{{ asset_prefix }}tracks/{{ slot.submission.track_id }}.html"
+                >{{ slot.submission.track.name }}</a>
+            </p>{% endif %}
         {% include "pretalx_static_schedule/tags.html" with submission=slot.submission %}
         {% if slot.submission.do_not_record %}<p>
                 {% phrase "phrases.agenda.schedule_do_not_record" %}
