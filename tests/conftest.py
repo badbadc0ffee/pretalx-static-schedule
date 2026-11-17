@@ -87,7 +87,10 @@ def published_schedule(event):
 def published_talk_slot(event):
     with scopes_disabled():
         speaker = SpeakerProfile.objects.create(
-            event=event, name="Ada Example", biography="Builds **small tools**."
+            event=event,
+            code="ADA0001",
+            name="Ada Example",
+            biography="Builds **small tools**."
         )
         submission = Submission.objects.create(
             event=event,
@@ -114,6 +117,12 @@ def published_talk_slot(event):
         )
         freeze_schedule(event.wip_schedule, "1.0", notify_speakers=False)
     return slot
+
+
+@pytest.fixture
+def published_speaker(published_talk_slot, event):
+    with scope(event=event):
+        return published_talk_slot.submission.sorted_speakers.first()
 
 
 @pytest.fixture

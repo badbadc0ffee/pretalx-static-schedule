@@ -90,8 +90,8 @@ def test_page_template_override(
     assertInHTML("<title>Custom page</title>", html)
 
 
-def test_base_override_changes_both_pages(
-    published_talk_slot, event, template_directory
+def test_base_override_changes_all_pages(
+    published_talk_slot, published_speaker, event, template_directory
 ):
     override = template_directory / "pretalx_static_schedule/base.html"
     override.parent.mkdir()
@@ -113,11 +113,16 @@ def test_base_override_changes_both_pages(
             continue
         html = content.decode("utf-8")
         assertInHTML(f"<p>Custom site {event.name}</p>", html)
+    for name in ("index.html", "sessions/TOOLS01.html"):
+        html = files[name].decode("utf-8")
         assertInHTML(
             f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
             html,
         )
         assert "Building &lt;tools&gt;" in html
+    speaker_html = files["speakers/ADA0001.html"].decode("utf-8")
+    assertInHTML("<h1>Ada Example</h1>", speaker_html)
+    assertInHTML(f"<title>Ada Example – {event.name}</title>", speaker_html)
     assertInHTML(
         f"<title>{event.name} – Schedule</title>", files["index.html"].decode("utf-8")
     )

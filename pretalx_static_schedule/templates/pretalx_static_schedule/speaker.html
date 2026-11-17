@@ -1,0 +1,10 @@
+{% extends "pretalx_static_schedule/base.html" %}
+{% block title %}{{ speaker.profile.get_display_name }} – {{ event.name }}{% endblock %}
+{% block header %}
+    <a href="../index.html">{{ event.name }}</a>
+{% endblock %}
+{% block content %}
+    <article class="speaker">
+        <h1>{{ speaker.profile.get_display_name }}</h1>
+    </article>
+{% endblock %}

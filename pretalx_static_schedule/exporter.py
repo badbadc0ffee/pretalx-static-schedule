@@ -97,6 +97,7 @@ class StaticScheduleExporter(BaseExporter):
         files["index.html"] = render_to_string(
             "pretalx_static_schedule/schedule.html", context
         ).encode("utf-8")
+        speakers_by_code = {}
         for code, slots in sessions.items():
             submission = slots[0].submission
             speakers = [
@@ -119,6 +120,7 @@ class StaticScheduleExporter(BaseExporter):
                 speaker["submission_count"] = len(
                     {slot.submission_id for slot in speaker["slots"]}
                 )
+                speakers_by_code.setdefault(speaker["profile"].code, speaker)
             files[f"sessions/{code}.html"] = render_to_string(
                 "pretalx_static_schedule/session.html",
                 context
@@ -129,6 +131,11 @@ class StaticScheduleExporter(BaseExporter):
                     "recording": recordings[code],
                     "asset_prefix": "../",
                 },
+            ).encode("utf-8")
+        for code, speaker in speakers_by_code.items():
+            files[f"speakers/{code}.html"] = render_to_string(
+                "pretalx_static_schedule/speaker.html",
+                context | {"speaker": speaker, "asset_prefix": "../"},
             ).encode("utf-8")
         for name in ["index.html", *(f"sessions/{code}.html" for code in sessions)]:
             directory = posixpath.dirname(name) or "."

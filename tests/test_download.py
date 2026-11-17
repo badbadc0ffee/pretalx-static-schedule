@@ -13,7 +13,7 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_zip_download_from_organiser_interface(published_talk_slot, event, orga_client):
+def test_zip_download_from_organiser_interface(published_speaker, event, orga_client):
     exporter = StaticScheduleExporter(event)
     listing = orga_client.get(event.orga_urls.schedule_export)
     assert listing.status_code == 200
@@ -36,10 +36,14 @@ def test_zip_download_from_organiser_interface(published_talk_slot, event, orga_
         assert set(archive.namelist()) == {
             "index.html",
             "sessions/TOOLS01.html",
+            "speakers/ADA0001.html",
             "assets/schedule.css",
         }
         assert "Schedule version 1.0" in archive.read("index.html").decode("utf-8")
         assert "Ada Example" in archive.read("sessions/TOOLS01.html").decode("utf-8")
+        assert "Ada Example" in archive.read(
+            "speakers/ADA0001.html"
+        ).decode("utf-8")
 
 
 def test_zip_download_is_not_public(published_talk_slot, event, client):

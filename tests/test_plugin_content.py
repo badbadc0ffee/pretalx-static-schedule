@@ -316,7 +316,7 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
 
 @pytest.mark.parametrize("label", ("Equipment diagram", ""))
 def test_remote_plugin_images_become_links(
-    published_talk_slot, event, register_signal_handler, label
+    published_speaker, event, register_signal_handler, label
 ):
     def handler(signal, sender, **kwargs):
         return (
@@ -332,7 +332,12 @@ def test_remote_plugin_images_become_links(
         "a", href="https://external.example.org/diagram.png"
     ).get_text() == (label or "Image")
     assert not page.find("img", src="https://external.example.org/diagram.png")
-    assert set(files) == {"index.html", "assets/schedule.css", "sessions/TOOLS01.html"}
+    assert set(files) == {
+        "index.html",
+        "assets/schedule.css",
+        "sessions/TOOLS01.html",
+        "speakers/ADA0001.html",
+    }
 
 
 @pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net:8443"))

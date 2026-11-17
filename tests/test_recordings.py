@@ -154,6 +154,7 @@ def test_recording_without_urls(
 @pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net"))
 def test_local_recording_stays_external_in_any_directory(
     published_talk_slot,
+    published_speaker,
     event,
     recording_provider,
     settings,
@@ -191,6 +192,7 @@ def test_local_recording_stays_external_in_any_directory(
             "index.html",
             "assets/schedule.css",
             "sessions/TOOLS01.html",
+            "speakers/ADA0001.html",
         }
         assert not any(
             part in {".", ".."}
@@ -281,14 +283,19 @@ def test_relative_provider_links_use_the_original_page_as_base(
 
 
 def test_recording_link_does_not_require_the_file_to_be_available(
-    published_talk_slot, event, recording_provider
+    published_talk_slot, published_speaker, event, recording_provider
 ):
     url = default_storage.url("recordings/unavailable.mp4")
     recording_provider(f'<video src="{url}"></video>')
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    assert set(files) == {"index.html", "assets/schedule.css", "sessions/TOOLS01.html"}
+    assert set(files) == {
+        "index.html",
+        "assets/schedule.css",
+        "sessions/TOOLS01.html",
+        "speakers/ADA0001.html",
+    }
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
     assert page.select_one(".recording a")["href"] == urljoin(
         published_talk_slot.submission.urls.public.full(), url
@@ -296,7 +303,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
 
 
 def test_organiser_download_includes_only_current_session_recordings(
-    published_talk_slot, event, recording_provider, orga_client
+    published_talk_slot, published_speaker, event, recording_provider, orga_client
 ):
     seen = recording_provider(
         '<iframe src="https://video.example.org/current"></iframe>'
@@ -344,6 +351,7 @@ def test_organiser_download_includes_only_current_session_recordings(
             "index.html",
             "assets/schedule.css",
             "sessions/CURRENT1.html",
+            "speakers/ADA0001.html",
         }
         page = BeautifulSoup(archive.read("sessions/CURRENT1.html"), "html.parser")
         assert (
@@ -354,7 +362,12 @@ def test_organiser_download_includes_only_current_session_recordings(
 
 
 def test_organiser_download_links_to_recording_without_copying_it(
-    published_talk_slot, event, recording_provider, orga_client, settings
+    published_talk_slot,
+    published_speaker,
+    event,
+    recording_provider,
+    orga_client,
+    settings,
 ):
     settings.STORAGES = {
         **settings.STORAGES,
@@ -373,6 +386,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
             "index.html",
             "assets/schedule.css",
             "sessions/TOOLS01.html",
+            "speakers/ADA0001.html",
         }
         page = BeautifulSoup(archive.read("sessions/TOOLS01.html"), "html.parser")
         assert page.select_one(".recording a")["href"] == urljoin(

@@ -1,0 +1,130 @@
+import datetime as dt
+from io import BytesIO
+from zipfile import ZipFile
+
+import pytest
+from bs4 import BeautifulSoup
+from django.test.html import parse_html
+from django_scopes import scope
+from pytest_django.asserts import assertInHTML
+
+from pretalx.person.models import SpeakerProfile
+from pretalx.schedule.domain.release import freeze_schedule
+from pretalx.schedule.models import TalkSlot
+from pretalx.submission.models import Submission, SubmissionStates
+
+from pretalx_static_schedule.exporter import StaticScheduleExporter
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.mark.parametrize("name", ("Ada Example", "Ada & <team>"))
+def test_speaker_page_uses_the_shared_layout(published_speaker, event, tmp_path, name):
+    with scope(event=event):
+        published_speaker.name = name
+        published_speaker.save(update_fields=["name"])
+        _, content_type, data = StaticScheduleExporter(event).render(request=None)
+
+    assert content_type == "application/zip"
+    with ZipFile(BytesIO(data)) as archive:
+        archive.extractall(tmp_path)
+    html = (tmp_path / "speakers/ADA0001.html").read_text(
+        encoding="utf-8"
+    )
+    page = BeautifulSoup(html, "html.parser")
+    assert page.find("h1").get_text() == name
+    assert page.title.get_text() == f"{name} – {event.name}"
+    assert page.header.find("a")["href"] == "../index.html"
+    assert page.header.find("a").get_text() == str(event.name)
+    assert page.find("link", rel="stylesheet")["href"] == "../assets/schedule.css"
+    assert "Europe/Berlin" in page.header.get_text()
+    assert parse_html(html)
+    assert not page.find(["script", "form", "iframe"])
+
+
+@pytest.mark.parametrize("repeated", (False, True))
+def test_shared_speakers_have_one_page_each(
+    published_talk_slot, published_speaker, event, repeated
+):
+    with scope(event=event):
+        second_speaker = SpeakerProfile.objects.create(event=event, name="Ada Example")
+        other = Submission.objects.create(
+            event=event,
+            code="OTHER01",
+            title="Other session",
+            submission_type=published_talk_slot.submission.submission_type,
+            state=SubmissionStates.CONFIRMED,
+        )
+        other.speakers.add(published_speaker, second_speaker)
+        TalkSlot.objects.create(
+            schedule=event.wip_schedule,
+            submission=other,
+            room=published_talk_slot.room,
+            start=published_talk_slot.end,
+            end=published_talk_slot.end + dt.timedelta(minutes=30),
+        )
+        if repeated:
+            TalkSlot.objects.create(
+                schedule=event.wip_schedule,
+                submission=other,
+                room=published_talk_slot.room,
+                start=published_talk_slot.start + dt.timedelta(days=1),
+                end=published_talk_slot.end + dt.timedelta(days=1),
+            )
+        freeze_schedule(event.wip_schedule, "2.0", notify_speakers=False)
+        files = StaticScheduleExporter(event).get_files()
+
+    assert {name for name in files if name.startswith("speakers/")} == {
+        "speakers/ADA0001.html",
+        f"speakers/{second_speaker.code}.html",
+    }
+    for speaker in (published_speaker, second_speaker):
+        assertInHTML(
+            "<h1>Ada Example</h1>", files[f"speakers/{speaker.code}.html"].decode()
+        )
+
+
+@pytest.mark.parametrize("reason", ("archived", "wip", "unscheduled", "unconfirmed"))
+def test_speaker_pages_use_only_current_published_sessions(
+    published_talk_slot, published_speaker, event, reason
+):
+    with scope(event=event):
+        unused = SpeakerProfile.objects.create(event=event, name="Unused speaker")
+        excluded = SpeakerProfile.objects.create(event=event, name="Excluded speaker")
+        submission = Submission.objects.create(
+            event=event,
+            code="EXCLUDE1",
+            title="Excluded session",
+            submission_type=published_talk_slot.submission.submission_type,
+            state=SubmissionStates.SUBMITTED
+            if reason == "unconfirmed"
+            else SubmissionStates.CONFIRMED,
+        )
+        submission.speakers.add(excluded)
+        TalkSlot.objects.create(
+            schedule=event.wip_schedule,
+            submission=submission,
+            room=None if reason == "unscheduled" else published_talk_slot.room,
+            start=published_talk_slot.end,
+            end=published_talk_slot.end + dt.timedelta(minutes=30),
+        )
+        if reason != "wip":
+            freeze_schedule(event.wip_schedule, "2.0", notify_speakers=False)
+        if reason == "archived":
+            event.wip_schedule.talks.filter(submission=submission).delete()
+            freeze_schedule(event.wip_schedule, "3.0", notify_speakers=False)
+        files = StaticScheduleExporter(event).get_files()
+
+    assert {name for name in files if name.startswith("speakers/")} == {
+        "speakers/ADA0001.html"
+    }
+    assert f"speakers/{excluded.code}.html" not in files
+    assert f"speakers/{unused.code}.html" not in files
+
+
+def test_empty_schedule_has_no_speaker_pages(published_schedule, event):
+    with scope(event=event):
+        SpeakerProfile.objects.create(event=event, name="Unused speaker")
+        files = StaticScheduleExporter(event).get_files()
+
+    assert set(files) == {"index.html", "assets/schedule.css"}

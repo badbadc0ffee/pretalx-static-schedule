@@ -26,6 +26,7 @@ ZIP contents
 
 * ``index.html``: schedule overview.
 * ``sessions/<code>.html``: session details and public speaker information.
+* ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
 * ``media/``: uploaded images and public files, when present.
 
@@ -60,10 +61,11 @@ These paths override the default templates:
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
 * ``pretalx_static_schedule/schedule.html``: schedule overview.
 * ``pretalx_static_schedule/session.html``: session details.
+* ``pretalx_static_schedule/speaker.html``: speaker pages.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
 
-Both page templates extend ``base.html``. They use the ``title``, ``header`` and
+The page templates extend ``base.html``. They use the ``title``, ``header`` and
 ``content`` blocks. For example, add this to your override of ``schedule.html``::
 
     {% extends "pretalx_static_schedule/schedule.html" %}

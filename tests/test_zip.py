@@ -15,7 +15,9 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_render_returns_a_complete_zip(published_talk_slot, event, tmp_path):
+def test_render_returns_a_complete_zip(
+    published_talk_slot, published_speaker, event, tmp_path
+):
     with scope(event=event), freeze_time("2026-01-15T12:30:00Z"):
         filename, content_type, data = StaticScheduleExporter(event).render(
             request=None
@@ -29,6 +31,7 @@ def test_render_returns_a_complete_zip(published_talk_slot, event, tmp_path):
             "assets/schedule.css",
             "index.html",
             "sessions/TOOLS01.html",
+            "speakers/ADA0001.html",
         ]
         assert archive.testzip() is None
         for name in archive.namelist():
@@ -41,6 +44,7 @@ def test_render_returns_a_complete_zip(published_talk_slot, event, tmp_path):
         "index.html",
         "assets",
         "sessions",
+        "speakers",
     }
     assertInHTML(
         '<a href="sessions/TOOLS01.html">Building &lt;tools&gt;</a>',
@@ -51,6 +55,10 @@ def test_render_returns_a_complete_zip(published_talk_slot, event, tmp_path):
     assertInHTML(f'<a href="../index.html">{event.name}</a>', detail)
     assert "Room A" in detail
     assert "Ada Example" in detail
+    assertInHTML(
+        "<h1>Ada Example</h1>",
+        (root / "speakers/ADA0001.html").read_text(encoding="utf-8"),
+    )
     assert b"body" in (root / "assets/schedule.css").read_bytes()
 
 
@@ -65,7 +73,9 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event):
     assert overview.count("No sessions on") == event.duration
 
 
-def test_extracted_zip_includes_images_and_public_files(image_uploads, event, tmp_path):
+def test_extracted_zip_includes_images_and_public_files(
+    image_uploads, published_speaker, event, tmp_path
+):
     uploads, image_data = image_uploads
     with scope(event=event):
         submission = event.submissions.get(code="TOOLS01")
@@ -101,6 +111,7 @@ def test_extracted_zip_includes_images_and_public_files(image_uploads, event, tm
         assert set(archive.namelist()) == {
             "index.html",
             "sessions/TOOLS01.html",
+            "speakers/ADA0001.html",
             "assets/schedule.css",
             *expected_uploads,
         }
