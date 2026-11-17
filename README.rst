@@ -2,20 +2,24 @@ pretalx-static-schedule
 =======================
 
 Exports the latest published pretalx schedule as static HTML pages in one ZIP
-archive.
+archive. The pages work without JavaScript or a running pretalx server.
 
 Installation
 ------------
 
-Install in the same Python environment as pretalx 2026.2.1::
+Clone this repository. Activate the Python environment that runs pretalx
+2026.2.1. In the repository directory, run::
 
-    uv pip install -e .
+    uv pip install .
+
+Restart pretalx.
 
 Export
 ------
 
-Enable the plugin in the event settings. Publish a schedule. Open
-**Schedule → Export → More exports** and select **Static HTML (ZIP)**.
+Log in as an organiser. Enable the plugin under **Settings → Plugins**.
+Publish a schedule. Open **Schedule → Export → More exports** and select
+**Static HTML (ZIP)**. The export uses the latest published schedule.
 
 ZIP contents
 ------------
@@ -26,6 +30,13 @@ ZIP contents
 * ``media/``: uploaded images and public files, when present.
 
 Extract the ZIP into a web server directory. Keep its directory structure.
+For example, if the server's document root is ``/var/www/html/``::
+
+    unzip downloaded-schedule.zip -d /var/www/html/conference/
+
+Replace ``downloaded-schedule.zip`` with the downloaded filename. Open
+``/conference/index.html`` on that server. The files also work at the server
+root or under a different domain.
 
 HTML templates
 --------------
@@ -68,7 +79,6 @@ Install the locked dependencies::
 
     uv sync --frozen --extra dev
 
-Tests use table synchronization, as pretalx's local test settings do.
 Run the tests with 100% line and branch coverage::
 
     just test
