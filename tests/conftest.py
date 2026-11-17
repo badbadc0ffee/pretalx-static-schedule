@@ -39,6 +39,22 @@ def organiser():
 
 
 @pytest.fixture
+def register_signal_handler(settings):
+    registered = []
+    settings.CORE_MODULES = [*settings.CORE_MODULES, "tests._test_plugin"]
+
+    def register(signal, handler):
+        handler.__module__ = "tests._test_plugin"
+        signal.connect(handler)
+        registered.append((signal, handler))
+
+    yield register
+
+    for signal, handler in registered:
+        signal.disconnect(handler)
+
+
+@pytest.fixture
 def event(organiser):
     today = dt.date.today()
     with scopes_disabled():

@@ -1,0 +1,14 @@
+{% load i18n %}
+{% if recording.text or recording.links %}
+    <section class="recording">
+        <h2>{% translate "Recording" %}</h2>
+        {% if recording.text %}<p>{{ recording.text }}</p>{% endif %}
+        {% if recording.links %}
+            <ul>
+                {% for link in recording.links %}
+                    <li><a href="{{ link.url }}">{{ link.label }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+{% endif %}

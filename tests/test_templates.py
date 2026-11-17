@@ -7,6 +7,8 @@ from django.template.loader import get_template
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
 
+from pretalx.agenda.recording import BaseRecordingProvider
+from pretalx.agenda.signals import register_recording_provider
 from pretalx.submission.models import Answer, Question
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
@@ -34,6 +36,9 @@ def test_default_templates(published_talk_slot, event):
     )
     assert Path(get_template("pretalx_static_schedule/answers.html").origin.name) == (
         template_root / "pretalx_static_schedule/answers.html"
+    )
+    assert Path(get_template("pretalx_static_schedule/recording.html").origin.name) == (
+        template_root / "pretalx_static_schedule/recording.html"
     )
     for name, output, title in (
         ("schedule.html", "index.html", f"{event.name} – Schedule"),
@@ -187,3 +192,38 @@ def test_answers_template_override(published_talk_slot, event, template_director
     assert html.count('class="custom-answers"') == 2
     for target in ("submission", "speaker"):
         assertInHTML(f"<p>{target}: Public answer</p>", html)
+
+
+def test_recording_template_override(
+    published_talk_slot, event, template_directory, register_signal_handler
+):
+    class Provider(BaseRecordingProvider):
+        def get_recording(self, submission):
+            return {
+                "iframe": '<iframe src="https://video.example.org/watch/123" title="Session video"></iframe>',
+                "csp_header": "https://video.example.org",
+            }
+
+    def handler(signal, sender, **kwargs):
+        return Provider(sender)
+
+    register_signal_handler(register_recording_provider, handler)
+    template_name = "pretalx_static_schedule/recording.html"
+    override = template_directory / template_name
+    override.parent.mkdir()
+    override.write_text(
+        '<aside class="custom-recording"><h2>{{ submission.title }}</h2>'
+        '{% for link in recording.links %}<a href="{{ link.url }}">'
+        "Custom {{ link.label }}</a>{% endfor %}</aside>",
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    assert Path(get_template(template_name).origin.name) == override
+    html = files["sessions/TOOLS01.html"].decode("utf-8")
+    assertInHTML(
+        '<aside class="custom-recording"><h2>Building &lt;tools&gt;</h2>'
+        '<a href="https://video.example.org/watch/123">Custom Session video</a></aside>',
+        html,
+    )

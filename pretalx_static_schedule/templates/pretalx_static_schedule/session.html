@@ -40,6 +40,7 @@
         {% endif %}
         <section class="abstract">{{ submission.abstract|rich_text_abslinks }}</section>
         <section class="description">{{ submission.description|rich_text_abslinks }}</section>
+        {% include "pretalx_static_schedule/recording.html" %}
         {% include "pretalx_static_schedule/answers.html" with answers=submission.public_answers %}
         {% if submission.public_resources %}
             <section class="resources">

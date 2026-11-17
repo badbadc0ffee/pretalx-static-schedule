@@ -29,6 +29,10 @@ ZIP contents
 * ``assets/schedule.css``: stylesheet.
 * ``media/``: uploaded images and public files, when present.
 
+Session pages include recording information from enabled recording providers.
+Recording descriptions and labels are kept as text. Links in provider HTML,
+including iframe and media URLs, become ordinary links to the original site.
+
 Extract the ZIP into a web server directory. Keep its directory structure.
 For example, if the server's document root is ``/var/www/html/``::
 
@@ -49,6 +53,7 @@ These paths override the default templates:
 * ``pretalx_static_schedule/schedule.html``: schedule overview.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
+* ``pretalx_static_schedule/recording.html``: recording information and links.
 
 Both page templates extend ``base.html``. They use the ``title``, ``header`` and
 ``content`` blocks. For example, add this to your override of ``schedule.html``::
@@ -74,6 +79,10 @@ template tag to copy an uploaded file and get its relative URL::
     {% if image_url %}<img src="{{ image_url }}" alt="Session image">{% endif %}
 
 Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
+
+The recording template receives ``recording.text`` and ``recording.links``.
+Each link has ``url`` and ``label`` fields. Recording URLs point to their
+original location outside the archive.
 
 Development checks
 ------------------

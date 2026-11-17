@@ -14,6 +14,8 @@ from pretalx.common.exporter import BaseExporter
 from pretalx.schedule.interfaces.exporters import ScheduleData
 from pretalx.submission.domain.queries.question import public_answers_for_speaker
 
+from .recording import recording_data
+
 
 class StaticScheduleExporter(BaseExporter):
     verbose_name = _("Static HTML (ZIP)")
@@ -110,6 +112,7 @@ class StaticScheduleExporter(BaseExporter):
                     "submission": submission,
                     "slots": slots,
                     "speakers": speakers,
+                    "recording": recording_data(submission),
                     "asset_prefix": "../",
                 },
             ).encode("utf-8")
