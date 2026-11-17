@@ -3,7 +3,7 @@ name = "pretalx-static-schedule"
 dynamic = ["version"]
 description = "Export the current pretalx schedule as static HTML pages."
 readme = "README.rst"
-license = {text = "Apache Software License"}
+license = "Apache-2.0"
 keywords = ["pretalx"]
 authors = [
   {name = "Florian Mösch", email = "florian@moesch.org"},
@@ -34,7 +34,7 @@ pretalx_static_schedule = "pretalx_static_schedule:PretalxPluginMeta"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools"]
+requires = ["setuptools>=77.0.0"]
 
 [tool.setuptools]
 include-package-data = true
