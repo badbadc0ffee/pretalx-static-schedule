@@ -1,0 +1,29 @@
+{% load i18n phrases rich_text %}
+<article class="session">
+    {% if show_date %}
+        <p><time datetime="{{ slot.start|date:'Y-m-d' }}">{{ slot.start|date:"DATE_FORMAT" }}</time></p>
+    {% endif %}
+    <p>
+        <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>
+        · {{ slot.duration }} {% translate "min" %}
+    </p>
+    {% if slot.submission %}
+        <h3>
+            <a href="{{ session_prefix }}{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
+        </h3>
+        <p>{{ slot.submission.display_speaker_names }}</p>
+        <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
+        {% if slot.submission.track %}<p>{{ slot.submission.track.name }}</p>{% endif %}
+        {% if slot.submission.do_not_record %}<p>
+                {% phrase "phrases.agenda.schedule_do_not_record" %}
+            </p>{% endif %}
+        {% if slot.signup_status == "full" %}
+            <p>{% translate "This session is currently full." %}</p>
+        {% elif slot.signup_status == "open" %}
+            <p>{% translate "This session requires attendees to sign up." %}</p>
+        {% endif %}
+    {% else %}
+        <h3>{{ slot.description }}</h3>
+    {% endif %}
+    <p>{{ slot.room.name }}</p>
+</article>

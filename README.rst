@@ -30,6 +30,9 @@ ZIP contents
 * ``assets/schedule.css``: stylesheet.
 * ``media/``: uploaded images and public files, when present.
 
+Speaker pages include the biography, public photo, public answers and files,
+and the speaker's sessions in the exported schedule.
+
 Session pages show the content language and assigned track, even when these
 fields are hidden on the public pages.
 
@@ -62,6 +65,8 @@ These paths override the default templates:
 * ``pretalx_static_schedule/schedule.html``: schedule overview.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
+* ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
+* ``pretalx_static_schedule/session_summary.html``: session cards on overview and speaker pages.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
 
@@ -73,6 +78,11 @@ The page templates extend ``base.html``. They use the ``title``, ``header`` and
         {{ block.super }}
         <p>Welcome to {{ event.name }}.</p>
     {% endblock %}
+
+The ``speaker_info.html`` template is shared by session and speaker pages.
+The ``session_summary.html`` template uses ``session_prefix`` for relative
+session links. Use ``{{ session_prefix }}{{ slot.submission.code }}.html`` in
+custom session cards.
 
 Keep links to exported pages and assets relative. Restart pretalx after changing
 templates. Django caches templates in production.

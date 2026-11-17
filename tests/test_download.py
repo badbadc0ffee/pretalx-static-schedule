@@ -41,9 +41,7 @@ def test_zip_download_from_organiser_interface(published_speaker, event, orga_cl
         }
         assert "Schedule version 1.0" in archive.read("index.html").decode("utf-8")
         assert "Ada Example" in archive.read("sessions/TOOLS01.html").decode("utf-8")
-        assert "Ada Example" in archive.read(
-            "speakers/ADA0001.html"
-        ).decode("utf-8")
+        assert "Ada Example" in archive.read("speakers/ADA0001.html").decode("utf-8")
 
 
 def test_zip_download_is_not_public(published_talk_slot, event, client):

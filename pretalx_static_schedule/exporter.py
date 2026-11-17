@@ -137,7 +137,11 @@ class StaticScheduleExporter(BaseExporter):
                 "pretalx_static_schedule/speaker.html",
                 context | {"speaker": speaker, "asset_prefix": "../"},
             ).encode("utf-8")
-        for name in ["index.html", *(f"sessions/{code}.html" for code in sessions)]:
+        for name in [
+            "index.html",
+            *(f"sessions/{code}.html" for code in sessions),
+            *(f"speakers/{code}.html" for code in speakers_by_code),
+        ]:
             directory = posixpath.dirname(name) or "."
 
             def rewrite_link(match, directory=directory):

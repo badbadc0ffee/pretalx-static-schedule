@@ -40,6 +40,10 @@ def test_default_templates(published_talk_slot, event):
     assert Path(get_template("pretalx_static_schedule/recording.html").origin.name) == (
         template_root / "pretalx_static_schedule/recording.html"
     )
+    for name in ("speaker_info.html", "session_summary.html"):
+        assert Path(get_template(f"pretalx_static_schedule/{name}").origin.name) == (
+            template_root / f"pretalx_static_schedule/{name}"
+        )
     for name, output, title in (
         ("schedule.html", "index.html", f"{event.name} – Schedule"),
         (
@@ -47,6 +51,7 @@ def test_default_templates(published_talk_slot, event):
             "sessions/TOOLS01.html",
             f"Building &lt;tools&gt; – {event.name}",
         ),
+        ("speaker.html", "speakers/ADA0001.html", f"Ada Example – {event.name}"),
     ):
         template_name = f"pretalx_static_schedule/{name}"
         assert (
@@ -65,6 +70,12 @@ def test_default_templates(published_talk_slot, event):
             "sessions/TOOLS01.html",
             "submission.title",
             "Building &lt;tools&gt;",
+        ),
+        (
+            "speaker.html",
+            "speakers/ADA0001.html",
+            "speaker.profile.get_display_name",
+            "Ada Example",
         ),
     ),
 )
@@ -134,7 +145,11 @@ def test_base_override_changes_all_pages(
 
 @pytest.mark.parametrize(
     ("name", "output"),
-    (("schedule.html", "index.html"), ("session.html", "sessions/TOOLS01.html")),
+    (
+        ("schedule.html", "index.html"),
+        ("session.html", "sessions/TOOLS01.html"),
+        ("speaker.html", "speakers/ADA0001.html"),
+    ),
 )
 def test_override_extends_default_page(
     published_talk_slot, event, template_directory, name, output
@@ -184,19 +199,69 @@ def test_answers_template_override(published_talk_slot, event, template_director
             Answer.objects.create(
                 question=question, answer="Public answer", **{target: obj}
             )
-        html = (
-            StaticScheduleExporter(event)
-            .get_files()["sessions/TOOLS01.html"]
-            .decode("utf-8")
-        )
+        files = StaticScheduleExporter(event).get_files()
 
     assert (
         Path(get_template("pretalx_static_schedule/answers.html").origin.name)
         == override
     )
+    html = files["sessions/TOOLS01.html"].decode("utf-8")
     assert html.count('class="custom-answers"') == 2
     for target in ("submission", "speaker"):
         assertInHTML(f"<p>{target}: Public answer</p>", html)
+    speaker_html = files["speakers/ADA0001.html"].decode("utf-8")
+    assert speaker_html.count('class="custom-answers"') == 1
+    assertInHTML("<p>speaker: Public answer</p>", speaker_html)
+    assert "submission: Public answer" not in speaker_html
+
+
+@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+def test_speaker_information_template_override(
+    published_speaker, event, template_directory, page
+):
+    template_name = "pretalx_static_schedule/speaker_info.html"
+    override = template_directory / template_name
+    override.parent.mkdir()
+    override.write_text(
+        '<aside class="custom-speaker"><p>Custom {{ speaker.profile.get_display_name }}</p></aside>',
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    assert Path(get_template(template_name).origin.name) == override
+    html = files[page].decode("utf-8")
+    assertInHTML(
+        '<aside class="custom-speaker"><p>Custom Ada Example</p></aside>', html
+    )
+    assert 'class="biography"' not in html
+
+
+@pytest.mark.parametrize(
+    ("page", "prefix"),
+    (("index.html", "sessions/"), ("speakers/ADA0001.html", "../sessions/")),
+)
+def test_session_summary_template_override(
+    published_speaker, event, template_directory, page, prefix
+):
+    template_name = "pretalx_static_schedule/session_summary.html"
+    override = template_directory / template_name
+    override.parent.mkdir()
+    override.write_text(
+        '<article class="custom-session"><a href="{{ session_prefix }}{{ slot.submission.code }}.html">'
+        "{{ slot.submission.title }}</a></article>",
+        encoding="utf-8",
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    assert Path(get_template(template_name).origin.name) == override
+    html = files[page].decode("utf-8")
+    assertInHTML(
+        f'<article class="custom-session"><a href="{prefix}TOOLS01.html">Building &lt;tools&gt;</a></article>',
+        html,
+    )
+    assert 'class="session"' not in html
 
 
 def test_recording_template_override(

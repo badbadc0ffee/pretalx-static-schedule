@@ -1,4 +1,5 @@
 {% extends "pretalx_static_schedule/base.html" %}
+{% load i18n tz %}
 {% block title %}{{ speaker.profile.get_display_name }} – {{ event.name }}{% endblock %}
 {% block header %}
     <a href="../index.html">{{ event.name }}</a>
@@ -6,5 +7,16 @@
 {% block content %}
     <article class="speaker">
         <h1>{{ speaker.profile.get_display_name }}</h1>
+        {% include "pretalx_static_schedule/speaker_info.html" %}
+        <section class="speaker-sessions">
+            <h2>
+                {% blocktranslate count count=speaker.slots|length %}Session{% plural %}Sessions{% endblocktranslate %}
+            </h2>
+            {% timezone event.timezone %}
+                {% for slot in speaker.slots %}
+                    {% include "pretalx_static_schedule/session_summary.html" with session_prefix="../sessions/" show_date=True %}
+                {% endfor %}
+            {% endtimezone %}
+        </section>
     </article>
 {% endblock %}

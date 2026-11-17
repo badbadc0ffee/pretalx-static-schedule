@@ -219,7 +219,7 @@ def test_language_and_recording_flag(published_talk_slot, event):
 
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     assertInHTML("<p><strong>Language:</strong> English</p>", html)
-    for name in ("index.html", "sessions/TOOLS01.html"):
+    for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         assert "This session will not be recorded." in files[name].decode("utf-8")
 
 
@@ -310,7 +310,7 @@ def test_signup_information(published_talk_slot, event, orga_user, full, message
             )
         files = StaticScheduleExporter(event).get_files()
 
-    for name in ("index.html", "sessions/TOOLS01.html"):
+    for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         html = files[name].decode("utf-8")
         assert message in html
         assert "<form" not in html

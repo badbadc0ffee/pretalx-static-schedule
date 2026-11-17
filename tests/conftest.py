@@ -90,7 +90,7 @@ def published_talk_slot(event):
             event=event,
             code="ADA0001",
             name="Ada Example",
-            biography="Builds **small tools**."
+            biography="Builds **small tools**.",
         )
         submission = Submission.objects.create(
             event=event,

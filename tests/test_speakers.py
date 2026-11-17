@@ -61,9 +61,17 @@ def test_one_speaker_submission_has_no_submission_list(
     assert section.find("h3") is None
     assert len(page.select(".session-times > li")) == (2 if repeated else 1)
     assert "sessions/WIP001.html" not in files
+    speaker_page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
+    cards = speaker_page.select(".speaker-sessions .session")
+    assert len(cards) == (2 if repeated else 1)
+    assert [card.find("a")["href"] for card in cards] == [
+        "../sessions/TOOLS01.html"
+    ] * len(cards)
+    assert "WIP appearance" not in speaker_page.get_text()
 
 
-def test_public_speaker_answers(published_talk_slot, event):
+@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+def test_public_speaker_answers(published_talk_slot, event, page):
     with scope(event=event):
         speaker = published_talk_slot.submission.sorted_speakers.first()
         for label, target, public, variant, value in (
@@ -84,7 +92,7 @@ def test_public_speaker_answers(published_talk_slot, event):
             Answer.objects.create(speaker=speaker, question=question, answer=value)
         files = StaticScheduleExporter(event).get_files()
 
-    html = files["sessions/TOOLS01.html"].decode("utf-8")
+    html = files[page].decode("utf-8")
     section = BeautifulSoup(html, "html.parser").select_one(".speaker")
     assertInHTML("<dt>Experience</dt>", str(section))
     assertInHTML("<dd><p>Builds <strong>small tools</strong>.</p></dd>", str(section))
@@ -96,7 +104,8 @@ def test_public_speaker_answers(published_talk_slot, event):
     assert "Reviewer answer" not in html
 
 
-def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path):
+@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, page):
     uploads, image_data = image_uploads
     with scope(event=event):
         speaker = event.submissions.get(code="TOOLS01").sorted_speakers.first()
@@ -123,9 +132,9 @@ def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path):
     with ZipFile(BytesIO(data)) as archive:
         archive.extractall(tmp_path)
         assert f"media/{answers[2].answer_file.name}" not in archive.namelist()
-    section = BeautifulSoup(
-        (tmp_path / "sessions/TOOLS01.html").read_text(), "html.parser"
-    ).select_one(".speaker")
+    section = BeautifulSoup((tmp_path / page).read_text(), "html.parser").select_one(
+        ".speaker"
+    )
     document = answers[0].answer_file
     assertInHTML(
         f'<a href="../media/{quote(document.name)}">{document}</a>', str(section)
@@ -298,3 +307,24 @@ def test_all_speaker_appearances_use_current_published_slots(
     )
     assert bob.select_one(".speaker-sessions") is None
     assert bob.find("h3") is None
+    speaker_page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
+    cards = speaker_page.select(".speaker-sessions .session")
+    assert len(cards) == 3
+    assert [card.find("a")["href"] for card in cards] == [
+        "../sessions/TOOLS01.html",
+        "../sessions/OTHER01.html",
+        "../sessions/TOOLS01.html",
+    ]
+    for card, start, room, duration in zip(
+        cards,
+        (current_start, other_start, repeated_start),
+        ("Current room", "Other room", "Repeated room"),
+        (45, 30, 15),
+        strict=True,
+    ):
+        assert card.find("time", attrs={"datetime": start.date().isoformat()})
+        assert card.find("time", attrs={"datetime": start.isoformat()})
+        assert room in card.get_text()
+        assert f"{duration} min" in card.get_text(" ", strip=True)
+    assert "Room A" not in speaker_page.get_text()
+    assert "WIP appearance" not in speaker_page.get_text()

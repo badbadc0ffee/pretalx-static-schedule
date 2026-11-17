@@ -1,5 +1,6 @@
 import datetime as dt
 from io import BytesIO
+from urllib.parse import quote
 from zipfile import ZipFile
 
 import pytest
@@ -28,9 +29,7 @@ def test_speaker_page_uses_the_shared_layout(published_speaker, event, tmp_path,
     assert content_type == "application/zip"
     with ZipFile(BytesIO(data)) as archive:
         archive.extractall(tmp_path)
-    html = (tmp_path / "speakers/ADA0001.html").read_text(
-        encoding="utf-8"
-    )
+    html = (tmp_path / "speakers/ADA0001.html").read_text(encoding="utf-8")
     page = BeautifulSoup(html, "html.parser")
     assert page.find("h1").get_text() == name
     assert page.title.get_text() == f"{name} – {event.name}"
@@ -128,3 +127,94 @@ def test_empty_schedule_has_no_speaker_pages(published_schedule, event):
         files = StaticScheduleExporter(event).get_files()
 
     assert set(files) == {"index.html", "assets/schedule.css"}
+
+
+@pytest.mark.parametrize("has_biography", (True, False))
+def test_speaker_page_biography_uses_rich_text_and_local_links(
+    published_talk_slot, published_speaker, event, has_biography
+):
+    with scope(event=event):
+        published_speaker.biography = (
+            "Builds **small tools**. [Project](https://example.org). "
+            f"[Schedule]({event.urls.schedule.full()}). "
+            f"[Session]({published_talk_slot.submission.urls.public.full()})."
+            if has_biography
+            else None
+        )
+        published_speaker.internal_notes = "Private speaker notes"
+        published_speaker.save(update_fields=["biography", "internal_notes"])
+        files = StaticScheduleExporter(event).get_files()
+
+    page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
+    biography = page.select_one(".biography")
+    assert biography is not None
+    if has_biography:
+        assert biography.find("strong").get_text() == "small tools"
+        assert [
+            (link["href"], link.get_text()) for link in biography.find_all("a")
+        ] == [
+            ("https://example.org", "Project"),
+            ("../index.html", "Schedule"),
+            ("../sessions/TOOLS01.html", "Session"),
+        ]
+    else:
+        assert biography.get_text() == ""
+    assert "Private speaker notes" not in page.get_text()
+
+
+@pytest.mark.parametrize("request_avatar", (True, False))
+@pytest.mark.parametrize("has_photo", (True, False))
+def test_speaker_page_uses_the_public_photo(
+    image_uploads, published_speaker, event, request_avatar, has_photo
+):
+    uploads, contents = image_uploads
+    with scope(event=event):
+        event.cfp.fields["avatar"]["visibility"] = (
+            "optional" if request_avatar else "do_not_ask"
+        )
+        event.cfp.save(update_fields=["fields"])
+        if not has_photo:
+            published_speaker.refresh_from_db()
+            published_speaker.profile_picture = None
+            published_speaker.save(update_fields=["profile_picture"])
+        files = StaticScheduleExporter(event).get_files()
+
+    page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
+    photo = page.select_one(".speaker-avatar")
+    path = f"media/{uploads['avatar'].name}"
+    if request_avatar and has_photo:
+        assert photo is not None
+        assert photo["src"] == "../" + quote(path)
+        assert photo["alt"] == "Ada Example"
+        assert photo.parent.name == "a"
+        assert photo.parent["href"] == photo["src"]
+        assert files[path] == contents
+    else:
+        assert photo is None
+        assert path not in files
+
+
+def test_speaker_session_cards_contain_the_public_page_information(
+    published_speaker, event, client
+):
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    response = client.get(published_speaker.urls.public)
+    assert response.status_code == 200
+    assert response.wsgi_request.user.is_anonymous
+    online = BeautifulSoup(response.content, "html.parser").select(
+        ".speaker-talks .pretalx-session"
+    )
+    page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
+    exported = page.select(".speaker-sessions .session")
+    assert len(online) == len(exported) == 1
+    for selector in (".title", ".speakers", ".abstract", ".track", ".room"):
+        value = " ".join(
+            online[0].select_one(selector).get_text(" ", strip=True).split()
+        )
+        assert value in " ".join(exported[0].get_text(" ", strip=True).split())
+    assert exported[0].find("a")["href"] == "../sessions/TOOLS01.html"
+    assert exported[0].find_all("time")[-1].get_text() == "10:00"
+    assert "45 min" in exported[0].get_text(" ", strip=True)
+    assert not page.find(["script", "form", "button", "iframe"])

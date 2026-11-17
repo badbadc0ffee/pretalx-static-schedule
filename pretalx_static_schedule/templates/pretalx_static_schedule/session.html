@@ -66,16 +66,7 @@
         {% for speaker in speakers %}
             <section class="speaker" id="speaker-{{ speaker.profile.code }}">
                 <h2>{{ speaker.profile.get_display_name }}</h2>
-                {% if event.cfp.request_avatar %}
-                    {% local_asset speaker.profile.avatar as avatar_url %}
-                    {% if avatar_url %}<a href="{{ avatar_url }}"><img
-                                class="speaker-avatar"
-                                src="{{ avatar_url }}"
-                                alt="{{ speaker.profile.get_display_name }}"
-                            ></a>{% endif %}
-                {% endif %}
-                <div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
-                {% include "pretalx_static_schedule/answers.html" with answers=speaker.answers %}
+                {% include "pretalx_static_schedule/speaker_info.html" %}
                 {% if speaker.submission_count > 1 %}
                     <h3>{% translate "Sessions" %}</h3>
                     {% timezone event.timezone %}
