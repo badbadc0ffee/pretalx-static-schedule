@@ -133,7 +133,7 @@ def test_public_downloads_are_local(published_talk_slot, event):
 
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     for upload, contents, label in (
-        (answer.answer_file, b"Public document", "File provided"),
+        (answer.answer_file, b"Public document", str(answer.answer_file)),
         (handout.resource, b"Public handout", "Handout"),
     ):
         path = f"media/{upload.name}"

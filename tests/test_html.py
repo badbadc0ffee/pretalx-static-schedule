@@ -1,7 +1,9 @@
 import datetime as dt
+from urllib.parse import quote
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.template.loader import render_to_string
 from django.test.html import parse_html
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
@@ -74,7 +76,7 @@ def test_session_detail(published_talk_slot, event):
     )
     assert "45 min" in " ".join(html.split())
     assert "Room A" in html
-    assert "Main hall" in html
+    assertInHTML('<span title="Main hall">Room A</span>', html)
     assert "Ada Example" in html
     assertInHTML("<p>Builds <strong>small tools</strong>.</p>", html)
     assert "A longer description of the tool." in html
@@ -172,8 +174,17 @@ def test_public_file_metadata(published_talk_slot, event):
             .decode("utf-8")
         )
 
+        document = submission.answers.get(question__question="Public document")
+        online_answer = render_to_string(
+            "common/question_answer.html", {"answer": document}
+        )
+
     assert "Public document" in html
-    assert "File provided" in html
+    assert str(document.answer_file) in online_answer
+    assertInHTML(
+        f'<a href="../media/{quote(document.answer_file.name)}">{document.answer_file}</a>',
+        html,
+    )
     assert "Missing document" in html
     assert "No file provided" in html
     assert "Handout" in html

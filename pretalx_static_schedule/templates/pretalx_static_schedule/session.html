@@ -49,10 +49,18 @@
                             {% local_asset answer.answer_file as answer_url %}
                             {% if answer_url %}<a
                                     href="{{ answer_url }}"
-                                >{% translate "File provided" %}</a>{% else %}{% translate "No file provided" %}{% endif %}
+                                >{{ answer.answer_file }}</a>{% else %}{% translate "No file provided" %}{% endif %}
                         {% else %}
-                            {% with value=answer.answer_string %}
-                                {% if value %}{{ value|rich_text_abslinks }}{% else %}{% translate "No response" %}{% endif %}
+                            {% with value=answer.answer_string|default_if_none:answer.answer %}
+                                {% if value %}
+                                    {% if answer.question.variant == "choices" or answer.question.variant == "multiple_choice" %}
+                                        {{ value }}
+                                    {% else %}
+                                        {{ value|rich_text_abslinks }}
+                                    {% endif %}
+                                {% else %}
+                                    {% translate "No response" %}
+                                {% endif %}
                             {% endwith %}
                         {% endif %}
                     </dd>
