@@ -32,6 +32,13 @@ header,
     margin-bottom: 1rem;
 }
 
+.session .abstract {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
 .track {
     color: var(--track-color);
 }
