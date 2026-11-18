@@ -180,7 +180,7 @@ def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, p
 @pytest.mark.parametrize("absolute", (False, True))
 @pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net"))
 def test_speaker_links_resolve_to_exported_pages(
-    published_talk_slot, event, absolute, custom_domain
+    published_talk_slot, event, absolute, custom_domain, footer_links
 ):
     with scope(event=event):
         event.custom_domain = custom_domain
@@ -250,10 +250,7 @@ def test_speaker_links_resolve_to_exported_pages(
         for link in page.find_all("a", href=True):
             url = urlsplit(link["href"])
             if url.scheme or url.netloc:
-                assert link["href"] in {
-                    "https://example.org",
-                    event.urls.schedule.full(),
-                }
+                assert link["href"] in {"https://example.org", *footer_links}
                 continue
             assert not url.path.startswith("/")
             target = (

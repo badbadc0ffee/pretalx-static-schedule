@@ -146,7 +146,7 @@ def test_track_pages_use_the_current_published_schedule(published_talk_slot, eve
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_track_links_and_assets_work_after_extraction(
-    image_uploads, event, day_files, tmp_path, deployment
+    image_uploads, event, day_files, tmp_path, deployment, footer_links
 ):
     with scope(event=event):
         submission = event.submissions.get(code="TOOLS01")
@@ -170,7 +170,7 @@ def test_track_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference in {"https://example.org", event.urls.schedule.full()}
+                assert reference in {"https://example.org", *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

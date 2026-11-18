@@ -69,7 +69,7 @@ def test_speaker_overview_sorts_full_display_names_ignoring_case(
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_speaker_overview_links_and_assets_work_after_extraction(
-    image_uploads, event, tmp_path, deployment
+    image_uploads, event, tmp_path, deployment, footer_links
 ):
     with scope(event=event):
         _, _, data = StaticScheduleExporter(event).render(request=None)
@@ -98,7 +98,7 @@ def test_speaker_overview_links_and_assets_work_after_extraction(
         reference = element.get("href", element.get("src"))
         assert not reference.startswith("/")
         if urlsplit(reference).scheme:
-            assert reference in {event.urls.schedule.full(), "https://example.org"}
+            assert reference in {"https://example.org", *footer_links}
             continue
         resolved = urlsplit(
             urljoin(

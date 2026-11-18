@@ -257,7 +257,13 @@ def test_invalid_pretalx_redirects_keep_the_label_without_a_broken_link(
 
 @pytest.mark.parametrize("absolute", (False, True))
 def test_plugin_images_are_included_and_links_work_after_extraction(
-    image_uploads, event, register_signal_handler, settings, tmp_path, absolute
+    image_uploads,
+    event,
+    register_signal_handler,
+    settings,
+    tmp_path,
+    absolute,
+    footer_links,
 ):
     uploads, image_data = image_uploads
     static_root = tmp_path / "static"
@@ -309,7 +315,7 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
             reference = element.get("href", element.get("src"))
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference in {"https://example.org", event.urls.schedule.full()}
+                assert reference in {"https://example.org", *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

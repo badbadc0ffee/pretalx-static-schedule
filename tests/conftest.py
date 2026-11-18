@@ -22,6 +22,15 @@ def collect_static(request):
 
 
 @pytest.fixture
+def footer_links():
+    return {
+        "https://events.ccc.de/congress/2026/": "40th Chaos Communication Congress",
+        "https://legal.cccv.de/": "Imprint",
+        "https://help.cccv.de/": "Help",
+    }
+
+
+@pytest.fixture
 def organiser():
     with scopes_disabled():
         o = Organiser.objects.create(name="Super Organiser", slug="superorganiser")

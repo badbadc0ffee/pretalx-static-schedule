@@ -134,7 +134,7 @@ def test_daily_overviews_use_only_the_current_published_schedule(
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_daily_overview_links_and_assets_work_after_extraction(
-    image_uploads, event, day_files, tmp_path, deployment
+    image_uploads, event, day_files, tmp_path, deployment, footer_links
 ):
     with scope(event=event):
         _, content_type, data = StaticScheduleExporter(event).render(request=None)
@@ -148,7 +148,7 @@ def test_daily_overview_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference in {event.urls.schedule.full(), "https://example.org"}
+                assert reference in {"https://example.org", *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

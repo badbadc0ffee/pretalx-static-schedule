@@ -186,7 +186,7 @@ def test_shared_shell_blocks_can_extend_the_defaults(
         assert page.header.find("p", string="Navigation addition")
         assert page.header.nav.find("a", string="All sessions")
         assert page.footer.find("p", string="Footer addition")
-        assert page.footer.find("a", string="Source schedule")
+        assert page.footer.find("a", string="40th Chaos Communication Congress")
 
 
 @pytest.mark.parametrize("external_first", (False, True))

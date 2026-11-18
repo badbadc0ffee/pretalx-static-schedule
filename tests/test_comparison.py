@@ -62,6 +62,7 @@ def test_extracted_site_contains_the_public_page_information(
     tmp_path,
     deployment,
     day_files,
+    footer_links,
 ):
     uploads, image_data = image_uploads
     with scope(event=event):
@@ -349,7 +350,7 @@ def test_extracted_site_contains_the_public_page_information(
                 assert (
                     reference.startswith("https://example.org")
                     or reference == recording_url
-                    or reference == event.urls.schedule.full()
+                    or reference in footer_links
                 )
                 continue
             assert not parsed.path.startswith("/")

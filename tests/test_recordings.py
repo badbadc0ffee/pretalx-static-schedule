@@ -164,6 +164,7 @@ def test_local_recording_stays_external_in_any_directory(
     custom_domain,
     day_files,
     stylesheet_files,
+    footer_links,
 ):
     settings.MEDIA_URL = media_url
     with scope(event=event):
@@ -224,11 +225,7 @@ def test_local_recording_stays_external_in_any_directory(
             reference = element.get("href", element.get("src"))
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference in {
-                    "https://example.org",
-                    expected,
-                    event.urls.schedule.full(),
-                }
+                assert reference in {"https://example.org", expected, *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

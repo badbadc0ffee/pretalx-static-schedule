@@ -168,7 +168,13 @@ def test_room_pages_use_only_the_current_published_schedule(published_talk_slot,
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_room_links_and_assets_work_after_extraction(
-    image_uploads, published_talk_slot, event, day_files, tmp_path, deployment
+    image_uploads,
+    published_talk_slot,
+    event,
+    day_files,
+    tmp_path,
+    deployment,
+    footer_links,
 ):
     with scope(event=event):
         submission = published_talk_slot.submission
@@ -210,7 +216,7 @@ def test_room_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference in {"https://example.org", event.urls.schedule.full()}
+                assert reference in {"https://example.org", *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

@@ -241,7 +241,7 @@ def test_content_links_to_exported_pages_are_relative(
     assert "TOOLS01.html" in refs
     assert refs.count("../index.html") == 4
     assert talk_url not in refs
-    assert refs.count(event.urls.schedule.full()) == 1
+    assert refs.count(event.urls.schedule.full()) == 0
     assert (
         overview_url
         not in HTMLReferences(str(BeautifulSoup(html, "html.parser").main)).references
@@ -301,7 +301,7 @@ def test_uploaded_html_is_copied_without_changes(published_talk_slot, event):
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
 def test_internal_references_work_in_any_directory(
-    image_uploads, event, tmp_path, deployment
+    image_uploads, event, tmp_path, deployment, footer_links
 ):
     with scope(event=event):
         question = Question.objects.create(
@@ -334,7 +334,7 @@ def test_internal_references_work_in_any_directory(
         for reference in references:
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference in {"https://example.org", event.urls.schedule.full()}
+                assert reference in {"https://example.org", *footer_links}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 from django.utils.translation import get_language, override
 from django_scopes import scope
 
-from pretalx_static_schedule import __version__
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 
 pytestmark = pytest.mark.django_db
@@ -16,7 +15,7 @@ pytestmark = pytest.mark.django_db
 @pytest.mark.parametrize("locale", ("de", "fr"))
 @pytest.mark.parametrize("custom_domain", (None, "https://schedule.example.net:8443"))
 def test_every_page_has_the_shared_semantic_shell(
-    image_uploads, event, images, locale, custom_domain
+    image_uploads, event, images, locale, custom_domain, footer_links
 ):
     uploads, _ = image_uploads
     with scope(event=event):
@@ -81,15 +80,14 @@ def test_every_page_has_the_shared_semantic_shell(
 
         assert quote(f"media/{uploads['logo'].name}") not in files
 
-        source = page.footer.a
-        assert source["href"] == event.urls.schedule.full()
-        assert source.get_text() == "Source schedule"
-        assert "external" in source["rel"]
-        version = page.footer.select_one('data[data-field="exporter-version"]')
-        assert version["value"] == __version__
-        assert " ".join(version.get_text().split()) == (
-            f"pretalx-static-schedule {__version__}"
-        )
+        assert [child.name for child in page.footer.find_all(recursive=False)] == [
+            "a"
+        ] * 3
+        assert [
+            (link["href"], link.get_text()) for link in page.footer.find_all("a")
+        ] == list(footer_links.items())
+        assert all("external" in link["rel"] for link in page.footer.find_all("a"))
+        assert page.footer.get_text(strip=True) == "".join(footer_links.values())
         for element in [page.head, page.header, page.footer]:
             for child in element.find_all():
                 assert (

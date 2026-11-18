@@ -59,8 +59,8 @@ are omitted; the optional event banner is retained. Browser titles still include
 the event name. Header navigation links to all sessions, every
 day, all speakers, every track and every room, in that order. It includes empty
 days, tracks and rooms; empty track and room groups are omitted. The current
-page's link is highlighted and remains usable. A footer identifies the exporter
-version and links to the original schedule.
+page's link is highlighted and remains usable. The footer contains links to
+the 40th Chaos Communication Congress website, Imprint and Help.
 
 Day headings on the full overview link to the daily pages. Daily pages include
 empty days and link back to the full overview.
@@ -263,7 +263,7 @@ Start with the current ``base.html`` and retain its shared header, navigation,
 main and footer. Move a page's primary heading from an old ``header`` block
 into ``content``. The header now contains the event identity and schedule
 metadata by default. The ``navigation`` block is inside the header; a new
-``footer`` block supplies the source link and exporter version. Use
+``footer`` block supplies the congress website, Imprint and Help links. Use
 ``{{ block.super }}`` when extending these defaults.
 
 Use prepared records rather than querying models or constructing relationships

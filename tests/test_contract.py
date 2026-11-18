@@ -33,7 +33,6 @@ from pretalx.submission.models import (
     Track,
 )
 
-from pretalx_static_schedule import __version__
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 from pretalx_static_schedule.templatetags.static_schedule import schedule_text
 
@@ -352,7 +351,7 @@ def test_representative_export_has_clean_structure_and_complete_local_references
                 )
                 == filename
             )
-        assert page.footer.find("data")["value"] == __version__
+        assert not page.footer.find("data")
         assert "INTERNAL ONLY" not in page.get_text()
         assert "Private organiser notes" not in page.get_text()
     assert kinds == {
