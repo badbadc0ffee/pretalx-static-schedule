@@ -2061,3 +2061,50 @@ article[data-kind="speaker"][data-view="detail"] > [data-field="biography"] {
         margin: 0 0 1rem auto;
     }
 }
+
+/* Dark green infobox text; outlines, fills and track colors retain their roles. */
+article a {
+    color: var(--forest);
+}
+
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6),
+article[data-kind="break"] > :is(h2, h3, h4, h5, h6) {
+    color: var(--forest);
+}
+
+/* Navigation labels and date headings use the same dark green as infobox text. */
+header nav a,
+header nav a:is([aria-current="page"], :hover, :focus-visible),
+main > section[data-day] > h2,
+main > section[data-day] > h2:has(a:is(:hover, :focus-visible)) {
+    color: var(--forest);
+}
+
+/* Track navigation retains its track color and readable text on filled states. */
+header nav a[data-track] {
+    color: var(--track-color, var(--primary));
+}
+
+header nav a[data-track]:is([aria-current="page"], :hover, :focus-visible) {
+    color: var(--ink);
+}
+
+/* Introductory track and room information is a small-text infobox. */
+main:is([data-page="track"], [data-page="room"]) > [data-field="description"] {
+    margin: 0 0 1.5rem;
+    border: var(--box-border-width) solid var(--primary);
+    padding: 1rem;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--body-font);
+    font-size: var(--text-small);
+    line-height: 1.6;
+}
+
+main:is([data-page="track"], [data-page="room"]) > [data-field="description"] > :last-child {
+    margin-bottom: 0;
+}
+
+main:is([data-page="track"], [data-page="room"]) > [data-field="description"] a {
+    color: var(--forest);
+}
