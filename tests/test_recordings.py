@@ -62,15 +62,15 @@ def test_recording_iframe_becomes_an_external_link(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    recording = page.select_one(".recording")
+    recording = page.select_one('[data-field="recording"]')
     assert recording is not None
-    assert recording.find("h2").get_text(strip=True) == "Recording"
+    assert recording["aria-label"] == "Recording"
     assert recording.find("a", href=url).get_text(strip=True) == label
     assert seen == [published_talk_slot.submission]
     assert not page.find(["iframe", "script", "video", "audio"])
     assert not any(name.endswith(".js") for name in files)
     assert not BeautifulSoup(files["index.html"], "html.parser").select_one(
-        ".recording"
+        '[data-field="recording"]'
     )
 
 
@@ -81,7 +81,7 @@ def test_no_recording_does_not_add_a_section(published_talk_slot, event):
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
     assert page.find("h1").get_text() == "Building <tools>"
-    assert not page.select_one(".recording")
+    assert not page.select_one('[data-field="recording"]')
 
 
 def test_recording_media_downloads_and_information(
@@ -101,7 +101,7 @@ def test_recording_media_downloads_and_information(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    section = page.select_one(".recording")
+    section = page.select_one('[data-field="recording"]')
     assert section is not None
     assert section.find("p").get_text(strip=True) == (
         "Recorded by Example crew . License: CC BY 4.0. Download video & audio"
@@ -141,7 +141,7 @@ def test_recording_without_urls(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    section = page.select_one(".recording")
+    section = page.select_one('[data-field="recording"]')
     if text:
         assert section.find("p").get_text(strip=True) == text
         assert not section.find("a")
@@ -210,7 +210,7 @@ def test_local_recording_stays_external_in_any_directory(
     page = BeautifulSoup(
         (tmp_path / "sessions/TOOLS01.html").read_text(), "html.parser"
     )
-    section = page.select_one(".recording")
+    section = page.select_one('[data-field="recording"]')
     link = section.find("a")
     expected = (
         urljoin(published_talk_slot.submission.urls.public.full(), url)
@@ -251,7 +251,7 @@ def test_recording_url_outside_storage_remains_external(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert page.select_one(".recording a")["href"] == url
+    assert page.select_one('[data-field="recording"] a')["href"] == url
     assert not any(name.startswith("media/") for name in files)
 
 
@@ -274,7 +274,7 @@ def test_recording_does_not_export_player_actions(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert not page.select_one(".recording")
+    assert not page.select_one('[data-field="recording"]')
     assert not page.find(["script", "iframe"])
 
 
@@ -286,7 +286,7 @@ def test_relative_provider_links_use_the_original_page_as_base(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert page.select_one(".recording a")["href"] == urljoin(
+    assert page.select_one('[data-field="recording"] a')["href"] == urljoin(
         published_talk_slot.submission.urls.public.full(),
         "../../../recordings/watch/123",
     )
@@ -312,7 +312,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
         "speakers/ADA0001.html",
     }
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert page.select_one(".recording a")["href"] == urljoin(
+    assert page.select_one('[data-field="recording"] a')["href"] == urljoin(
         published_talk_slot.submission.urls.public.full(), url
     )
 
@@ -380,10 +380,10 @@ def test_organiser_download_includes_only_current_session_recordings(
         }
         page = BeautifulSoup(archive.read("sessions/CURRENT1.html"), "html.parser")
         assert (
-            page.select_one(".recording a")["href"]
+            page.select_one('[data-field="recording"] a')["href"]
             == "https://video.example.org/current"
         )
-        assert len(page.select(".session-times > li")) == 2
+        assert len(page.select('[data-rel="occurrences"] > li')) == 2
 
 
 def test_organiser_download_links_to_recording_without_copying_it(
@@ -420,7 +420,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
             "speakers/ADA0001.html",
         }
         page = BeautifulSoup(archive.read("sessions/TOOLS01.html"), "html.parser")
-        assert page.select_one(".recording a")["href"] == urljoin(
+        assert page.select_one('[data-field="recording"] a')["href"] == urljoin(
             published_talk_slot.submission.urls.public.full(), default_storage.url(name)
         )
 
@@ -468,6 +468,10 @@ def test_recording_attachment_stays_outside_the_archive(
         assert f"media/{recording.name}" not in archive.namelist()
         assert archive.read(f"media/{handout.name}") == b"Public handout"
         page = BeautifulSoup(archive.read("sessions/TOOLS01.html"), "html.parser")
-    assert page.select_one(".recording a")["href"] == absolute + suffix
-    selector = ".resources a" if attachment == "resource" else ".public-answers a"
+    assert page.select_one('[data-field="recording"] a')["href"] == absolute + suffix
+    selector = (
+        '[data-rel="files"] a'
+        if attachment == "resource"
+        else '[data-field="public-answers"] a'
+    )
     assert page.select_one(selector)["href"] == absolute

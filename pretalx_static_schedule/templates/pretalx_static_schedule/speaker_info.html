@@ -1,11 +1,8 @@
 {% load rich_text static_schedule %}
-{% if event.cfp.request_avatar %}
-    {% local_asset speaker.profile.avatar as avatar_url %}
-    {% if avatar_url %}<a href="{{ avatar_url }}"><img
-                class="speaker-avatar"
-                src="{{ avatar_url }}"
-                alt="{{ speaker.profile.get_display_name }}"
-            ></a>{% endif %}
-{% endif %}
-<div class="biography">{{ speaker.profile.biography|default:''|rich_text_abslinks }}</div>
+{% local_asset speaker.image as image_url %}
+{% if image_url %}<a data-field="image" href="{{ image_url }}"><img
+            src="{{ image_url }}"
+            alt="{{ speaker.name }}"
+        ></a>{% endif %}
+{% if speaker.biography %}<div data-field="biography">{{ speaker.biography|rich_text_abslinks }}</div>{% endif %}
 {% include "pretalx_static_schedule/answers.html" with answers=speaker.answers %}

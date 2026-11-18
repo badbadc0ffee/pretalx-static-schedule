@@ -84,9 +84,19 @@ def test_shared_speakers_have_one_page_each(
         )
     overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
     assert {
-        link["href"] for link in overview.select(".speaker-list > .speaker > h2 > a")
+        link["href"]
+        for link in overview.select(
+            'main > [data-rel="speakers"] > li > article[data-kind="speaker"] > h2 > a'
+        )
     } == {f"{speaker.code}.html" for speaker in (published_speaker, second_speaker)}
-    assert len(overview.select(".speaker-list > .speaker")) == 2
+    assert (
+        len(
+            overview.select(
+                'main > [data-rel="speakers"] > li > article[data-kind="speaker"]'
+            )
+        )
+        == 2
+    )
 
 
 @pytest.mark.parametrize("reason", ("archived", "wip", "unscheduled", "unconfirmed"))
@@ -128,7 +138,10 @@ def test_speaker_pages_use_only_current_published_sessions(
     assert f"speakers/{unused.code}.html" not in files
     overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
     assert [
-        link["href"] for link in overview.select(".speaker-list > .speaker > h2 > a")
+        link["href"]
+        for link in overview.select(
+            'main > [data-rel="speakers"] > li > article[data-kind="speaker"] > h2 > a'
+        )
     ] == ["ADA0001.html"]
 
 
@@ -147,8 +160,8 @@ def test_empty_schedule_has_no_individual_speaker_pages(
         *day_files,
     }
     overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
-    assert "No speakers." in overview.select_one(".speaker-overview").get_text()
-    assert not overview.select(".speaker-list")
+    assert overview.select_one('[data-state="no-speakers"]')
+    assert not overview.select('main > [data-rel="speakers"]')
 
 
 @pytest.mark.parametrize("has_biography", (True, False))
@@ -168,9 +181,9 @@ def test_speaker_page_biography_uses_rich_text_and_local_links(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
-    biography = page.select_one(".biography")
-    assert biography is not None
+    biography = page.select_one('[data-field="biography"]')
     if has_biography:
+        assert biography is not None
         assert biography.find("strong").get_text() == "small tools"
         assert [
             (link["href"], link.get_text()) for link in biography.find_all("a")
@@ -180,7 +193,7 @@ def test_speaker_page_biography_uses_rich_text_and_local_links(
             ("../sessions/TOOLS01.html", "Session"),
         ]
     else:
-        assert biography.get_text() == ""
+        assert biography is None
     assert "Private speaker notes" not in page.get_text()
 
 
@@ -202,7 +215,7 @@ def test_speaker_page_uses_the_public_photo(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
-    photo = page.select_one(".speaker-avatar")
+    photo = page.select_one('article[data-kind="speaker"] > [data-field="image"] img')
     path = f"media/{uploads['avatar'].name}"
     if request_avatar and has_photo:
         assert photo is not None
@@ -229,16 +242,23 @@ def test_speaker_session_cards_contain_the_public_page_information(
         ".speaker-talks .pretalx-session"
     )
     page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
-    exported = page.select(".speaker-sessions .session")
+    exported = page.select(
+        '[data-rel="sessions"] article:is([data-kind="session"], [data-kind="break"])'
+    )
     assert len(online) == len(exported) == 1
-    for selector in (".title", ".speakers", ".abstract", ".track", ".room"):
+    for selector in (".title", ".abstract", ".track", ".room"):
         value = " ".join(
             online[0].select_one(selector).get_text(" ", strip=True).split()
         )
-        assert value in " ".join(exported[0].get_text(" ", strip=True).split())
+        assert value.replace(" .", ".") in " ".join(
+            exported[0].get_text(" ", strip=True).split()
+        ).replace(" .", ".")
     assert exported[0].find("a")["href"] == "../sessions/TOOLS01.html"
-    assert exported[0].find_all("time")[-1].get_text() == "10:00"
-    assert "45 min" in exported[0].get_text(" ", strip=True)
+    assert not exported[0].select('[data-rel="speakers"]')
+    assert (
+        exported[0].select_one('[data-field="start"] time').get_text().endswith("10:00")
+    )
+    assert exported[0].select_one('[data-field="duration"] data')["value"] == "PT45M"
     assert not page.find(["script", "form", "button", "iframe"])
 
 
@@ -252,12 +272,13 @@ def test_session_speaker_names_link_to_their_pages(published_talk_slot, event):
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
     assert {
-        (link["href"], link.get_text()) for link in page.select(".speaker > h2 > a")
+        (link["href"], link.get_text())
+        for link in page.select('article[data-kind="speaker"] > h2 > a')
     } == {
         ("../speakers/ADA0001.html", "Ada Example"),
         ("../speakers/BOB0001.html", "Ada Example"),
     }
-    for link in page.select(".speaker > h2 > a"):
+    for link in page.select('article[data-kind="speaker"] > h2 > a'):
         target = "speakers/" + link["href"].removeprefix("../speakers/")
         assert (
             BeautifulSoup(files[target], "html.parser").find("h1").get_text()
@@ -293,7 +314,7 @@ def test_overview_speaker_names_link_to_their_pages(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["index.html"], "html.parser")
-    links = page.select(".session > p:not(.track):not(.room) > a")
+    links = page.select('article[data-kind="session"] > [data-rel="speakers"] > li > a')
     assert len(links) == len(speakers)
     assert {(link["href"], link.get_text()) for link in links} == {
         (f"speakers/{speaker.code}.html", speaker.get_display_name())
@@ -302,4 +323,9 @@ def test_overview_speaker_names_link_to_their_pages(
     for link in links:
         target = BeautifulSoup(files[link["href"]], "html.parser")
         assert target.h1.get_text() == link.get_text()
-    assert page.select_one(".session > h3 > a")["href"] == "sessions/TOOLS01.html"
+    assert (
+        page.select_one(
+            'article:is([data-kind="session"], [data-kind="break"]) > h3 > a'
+        )["href"]
+        == "sessions/TOOLS01.html"
+    )

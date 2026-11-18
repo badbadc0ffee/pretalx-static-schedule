@@ -1,0 +1,4 @@
+<article {% for name, value in occurrence.attributes.items %} {{ name }}="{{ value }}"{% endfor %}>
+    <h{{ heading_level }}>{{ occurrence.title }}</h{{ heading_level }}>
+    {% include "pretalx_static_schedule/occurrence.html" %}
+</article>

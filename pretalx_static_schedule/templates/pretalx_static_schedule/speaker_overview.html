@@ -1,16 +1,11 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load i18n %}
 {% block content %}
-    <article class="speaker-overview">
-        <h1 data-label="all-speakers" aria-label="All speakers"></h1>
-        {% if speakers %}
-            <div class="speaker-list">
-                {% for speaker in speakers %}
-                    {% include "pretalx_static_schedule/speaker_summary.html" with show_all_sessions=True %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>{% translate "No speakers." %}</p>
-        {% endif %}
-    </article>
+    <h1 data-label="all-speakers" aria-label="All speakers"></h1>
+    {% if page.items %}
+        <ul data-rel="speakers" aria-label="Speakers">
+            {% for speaker in page.items %}<li>
+                    {% include "pretalx_static_schedule/speaker_summary.html" with heading_level=2 %}
+                </li>{% endfor %}
+        </ul>
+    {% else %}<p data-state="no-speakers" aria-label="No speakers."></p>{% endif %}
 {% endblock %}

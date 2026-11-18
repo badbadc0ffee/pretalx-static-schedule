@@ -1,0 +1,98 @@
+{% load rich_text static_schedule %}
+{% with submission=session.submission %}
+    <article {% for name, value in session.attributes.items %} {{ name }}="{{ value }}"{% endfor %}>
+        {% if session.view == "detail" %}{% session_content "pretalx.agenda.signals.html_above_session_pages" %}{% endif %}
+        <h{{ heading_level }}
+            {% if session.language %}lang="{{ session.language }}"{% endif %}
+        >{% if session.view == "summary" %}<a
+                    href="{{ session.url }}"
+                >{{ session.title }}</a>{% else %}{{ session.title }}{% endif %}</h{{ heading_level }}>
+        {% local_asset session.image as image_url %}
+        {% if image_url %}<a data-field="image" href="{{ image_url }}"><img
+                    src="{{ image_url }}"
+                    alt="This session’s header image"
+                ></a>{% endif %}
+        {% if session.abstract %}<div
+                data-field="abstract"
+                {% if session.language %}lang="{{ session.language }}"{% endif %}
+            >
+                {{ session.abstract|rich_text_abslinks }}
+            </div>{% endif %}
+        {% if session.view == "detail" and session.description %}<div
+                data-field="description"
+                {% if session.language %}lang="{{ session.language }}"{% endif %}
+            >
+                {{ session.description|rich_text_abslinks }}
+            </div>{% endif %}
+        {% if session.view == "detail" %}
+            <ol data-rel="occurrences" aria-label="Scheduled occurrences">
+                {% for occurrence in session.occurrences %}
+                    <li
+                        {% for name, value in occurrence.attributes.items %}
+                            {% if name != "data-kind" %} {{ name }}="{{ value }}"{% endif %}
+                        {% endfor %}
+                    >
+                        {% include "pretalx_static_schedule/occurrence.html" %}
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            {% include "pretalx_static_schedule/occurrence.html" with occurrence=session.occurrences.0 %}
+        {% endif %}
+        {% if session.language or session.track %}<dl>
+                {% if session.language %}<div data-field="language">
+                        <dt aria-label="Language"></dt>
+                        <dd><data value="{{ session.language }}">{{ session.language_name }}</data></dd>
+                    </div>{% endif %}
+                {% if session.track %}<div data-field="track">
+                        <dt aria-label="Track"></dt>
+                        <dd>
+                            <a
+                                data-track="{{ session.track.pk }}"
+                                href="{{ page.asset_prefix }}tracks/{{ session.track.pk }}.html"
+                            >{{ session.track.name }}</a>
+                        </dd>
+                    </div>{% endif %}
+            </dl>{% endif %}
+        {% include "pretalx_static_schedule/tags.html" with tags=session.tags %}
+        {% if session.recording_forbidden %}<p
+                data-state="recording-forbidden"
+                aria-label="This session will not be recorded."
+            >
+            </p>{% endif %}
+        {% if session.view == "detail" %}
+            {% include "pretalx_static_schedule/answers.html" with answers=session.answers %}
+            {% if session.files %}
+                <ul data-rel="files" aria-label="Files">
+                    {% for resource in session.files %}
+                        <li>
+                            {% if resource.link %}<a
+                                    href="{{ resource.link }}"
+                                >{{ resource.description }}</a>{% else %}{% local_asset resource.resource as resource_url %}<a
+                                    href="{{ resource_url }}"
+                                >{{ resource.description }}</a>{% endif %}
+                            {% if resource.size %}<data
+                                    data-field="size"
+                                    value="{{ resource.size }}"
+                                >{{ resource.size|filesizeformat }}</data>{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% include "pretalx_static_schedule/recording.html" with recording=session.recording %}
+            {% session_content "pretalx.agenda.signals.html_below_session_pages" %}
+        {% endif %}
+        {% if session.speakers %}
+            <ul data-rel="speakers" aria-label="Speakers">
+                {% for speaker in session.speakers %}
+                    <li>
+                        {% if session.relationship_mode == "summaries" %}{% include "pretalx_static_schedule/speaker_summary.html" with heading_level=heading_level|add:"1" %}{% else %}<a
+                                data-speaker="{{ speaker.code }}"
+                                href="{{ speaker.url }}"
+                            >{{ speaker.name }}</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </article>
+{% endwith %}

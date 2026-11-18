@@ -47,7 +47,9 @@ def test_speaker_overview_sorts_full_display_names_ignoring_case(
     page = BeautifulSoup(files["speakers/index.html"], "html.parser")
     assert [
         (link["href"], link.get_text())
-        for link in page.select(".speaker-list > .speaker > h2 > a")
+        for link in page.select(
+            'main > [data-rel="speakers"] > li > article[data-kind="speaker"] > h2 > a'
+        )
     ] == [
         ("SORT001.html", "Ada Example"),
         ("SORT002.html", "Ada Example"),
@@ -58,7 +60,9 @@ def test_speaker_overview_sorts_full_display_names_ignoring_case(
         ("SORT005.html", "Éva Example"),
     ]
     assert not page.find("team")
-    for link in page.select(".speaker-list > .speaker > h2 > a"):
+    for link in page.select(
+        'main > [data-rel="speakers"] > li > article[data-kind="speaker"] > h2 > a'
+    ):
         detail = BeautifulSoup(files[f"speakers/{link['href']}"], "html.parser")
         assert detail.h1.get_text() == link.get_text()
 
@@ -78,9 +82,12 @@ def test_speaker_overview_links_and_assets_work_after_extraction(
     assert page.header.find("a")["href"] == "../index.html"
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
     assert (
-        page.select_one(".speaker-list > .speaker > h2 > a")["href"] == "ADA0001.html"
+        page.select_one(
+            'main > [data-rel="speakers"] > li > article[data-kind="speaker"] > h2 > a'
+        )["href"]
+        == "ADA0001.html"
     )
-    talk = page.select_one(".speaker-sessions li > a:not(.room)")
+    talk = page.select_one('[data-rel="sessions"] > li > a')
     assert talk["href"] == "../sessions/TOOLS01.html"
     assert talk.get_text() == "Building <tools>"
     assert [link["href"] for link in page.find_all("link", rel="stylesheet")] == [
@@ -91,7 +98,7 @@ def test_speaker_overview_links_and_assets_work_after_extraction(
         reference = element.get("href", element.get("src"))
         assert not reference.startswith("/")
         if urlsplit(reference).scheme:
-            assert reference == event.urls.schedule.full()
+            assert reference in {event.urls.schedule.full(), "https://example.org"}
             continue
         resolved = urlsplit(
             urljoin(
@@ -132,8 +139,12 @@ def test_online_speaker_overview_links_are_rewritten(
         files = StaticScheduleExporter(event).get_files()
 
     for name, selector, destination in (
-        ("sessions/TOOLS01.html", ".description a", "../speakers/index.html"),
-        ("speakers/ADA0001.html", ".biography a", "index.html"),
+        (
+            "sessions/TOOLS01.html",
+            '[data-field="description"] a',
+            "../speakers/index.html",
+        ),
+        ("speakers/ADA0001.html", '[data-field="biography"] a', "index.html"),
         ("speakers/index.html", ".original-overview", "index.html"),
     ):
         page = BeautifulSoup(files[name], "html.parser")

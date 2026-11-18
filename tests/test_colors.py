@@ -95,7 +95,7 @@ def test_pages_use_the_event_color(published_talk_slot, event, color, settings, 
 
 
 @pytest.mark.parametrize("has_track", (True, False))
-@pytest.mark.parametrize("color", ("", "#2a6b8c"))
+@pytest.mark.parametrize("color", ("", "#2a6b8c", "#aBc"))
 @pytest.mark.parametrize("use_tracks", (True, False))
 def test_session_cards_and_details_use_the_assigned_track_color(
     published_talk_slot, event, has_track, color, use_tracks
@@ -112,23 +112,32 @@ def test_session_cards_and_details_use_the_assigned_track_color(
         files = StaticScheduleExporter(event).get_files()
 
     expected = color if has_track and color else "var(--color-primary)"
+    variables = files["assets/variables.css"].decode()
     for name, selector in (
-        ("index.html", ".session"),
-        ("sessions/TOOLS01.html", ".session-detail"),
-        ("speakers/ADA0001.html", ".session"),
+        ("index.html", 'article:is([data-kind="session"], [data-kind="break"])'),
+        ("sessions/TOOLS01.html", 'article[data-kind="session"][data-view="detail"]'),
+        (
+            "speakers/ADA0001.html",
+            'article:is([data-kind="session"], [data-kind="break"])',
+        ),
     ):
         page = BeautifulSoup(files[name], "html.parser")
         article = page.select_one(selector)
         assert article is not None
-        style = dict(re.findall(r"(--[\w-]+):\s*([^;]+)", article.get("style", "")))
-        assert style.get("--track-color", "").strip() == expected
+        assert "style" not in article.attrs
         if has_track:
-            assert "Tools" in article.select_one(".track").get_text()
+            assert article["data-track"] == str(submission.track_id)
+            assert (
+                f'[data-track="{submission.track_id}"] {{\n    --track-color: {expected};'
+                in variables
+            )
+            assert "Tools" in article.select_one('[data-field="track"]').get_text()
         else:
-            assert article.select_one(".track") is None
+            assert "data-track" not in article.attrs
+            assert article.select_one('[data-field="track"]') is None
     css = files["assets/schedule.css"].decode()
     assert "border-inline-start: 0.3rem solid var(--track-color);" in css
-    assert ".track {\n    color: var(--track-color);\n}" in css
+    assert '[data-field="track"] {\n    color: var(--track-color);\n}' in css
 
 
 def test_breaks_use_a_neutral_color(published_talk_slot, event):
@@ -146,8 +155,13 @@ def test_breaks_use_a_neutral_color(published_talk_slot, event):
 
     page = BeautifulSoup(files["index.html"], "html.parser")
     article = page.find("h3", string="Tea break").find_parent("article")
-    assert article["style"] == "--track-color: var(--color-grey-light)"
-    assert article.select_one(".track") is None
+    assert "style" not in article.attrs
+    assert article["data-kind"] == "break"
+    assert (
+        'article[data-kind="break"] {\n    --track-color: var(--color-grey-light);'
+        in files["assets/schedule.css"].decode()
+    )
+    assert article.select_one('[data-field="track"]') is None
 
 
 @pytest.mark.parametrize("has_public_tags", (True, False))
@@ -171,23 +185,28 @@ def test_public_tags_use_their_configured_colors(
 
     for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         page = BeautifulSoup(files[name], "html.parser")
-        badges = page.select(".tag-badge")
+        badges = page.select("[data-tag]")
         assert len(badges) == (2 if has_public_tags else 0)
-        assert {(badge.get_text(), badge["style"]) for badge in badges} == (
-            {
-                ("Public & <tag>", "background-color: #123abc"),
-                ("Workshop", "background-color: #abc123"),
-            }
+        assert {(badge.get_text(), badge["data-tag"]) for badge in badges} == (
+            {("Public & <tag>", str(tags[0].pk)), ("Workshop", str(tags[1].pk))}
             if has_public_tags
             else set()
         )
+        assert all("style" not in badge.attrs for badge in badges)
         assert "Private planning" not in page.get_text()
         assert "Unused public tag" not in page.get_text()
         assert "#ef1234" not in files[name].decode()
         if has_public_tags:
             assert "Public &amp; &lt;tag&gt;" in files[name].decode()
         else:
-            assert page.select_one(".tags") is None
+            assert page.select_one('[data-rel="tags"]') is None
     css = files["assets/schedule.css"].decode()
-    assert ".tag-badge {" in css
+    variables = files["assets/variables.css"].decode()
+    assert "#ef1234" not in variables
+    assert "#abc456" not in variables
+    for tag in tags[:2]:
+        assert (
+            f'[data-tag="{tag.pk}"] {{\n    background-color: {tag.color};' in variables
+        ) is has_public_tags
+    assert "[data-tag] {" in css
     assert "color: var(--color-white);" in css

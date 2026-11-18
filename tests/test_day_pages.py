@@ -76,35 +76,44 @@ def test_daily_overviews_follow_pretalx_day_grouping(event, day_files, timezone)
     overview = BeautifulSoup(files["index.html"], "html.parser")
     for offset, name in enumerate(day_files):
         page = BeautifulSoup(files[name], "html.parser")
-        assert len(page.select(".schedule-day")) == 1
+        assert len(page.select("section[data-day]")) == 1
         assert (
-            page.select_one(".schedule-day h2 time")["datetime"]
+            page.select_one("section[data-day] h2 time")["datetime"]
             == (event.date_from + dt.timedelta(days=offset)).isoformat()
         )
-        sessions = deepcopy(page.select(".session"))
+        sessions = deepcopy(
+            page.select('article:is([data-kind="session"], [data-kind="break"])')
+        )
         for session in sessions:
             for link in session.find_all("a", href=True):
                 link["href"] = link["href"].removeprefix("../")
-        assert sessions == overview.select(".schedule-day")[offset].select(".session")
+        assert sessions == overview.select("section[data-day]")[offset].select(
+            'article:is([data-kind="session"], [data-kind="break"])'
+        )
         assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
         assert not page.find(["script", "form", "iframe"])
     first = BeautifulSoup(files[day_files[0]], "html.parser")
     second = BeautifulSoup(files[day_files[1]], "html.parser")
-    assert [title.get_text(strip=True) for title in first.select(".session h3")] == [
-        "Earlier session",
-        "First day session",
-        "Tea break",
-        "Late session",
-    ]
-    assert [title.get_text(strip=True) for title in second.select(".session h3")] == [
-        "Second day session"
-    ]
+    assert [
+        title.get_text(strip=True)
+        for title in first.select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
+    ] == ["Earlier session", "First day session", "Tea break", "Late session"]
+    assert [
+        title.get_text(strip=True)
+        for title in second.select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
+    ] == ["Second day session"]
     assert "Room A" in first.get_text()
     assert "Room B" in first.get_text()
     assert "02:00" in first.get_text()
     assert "Private blocker" not in first.get_text()
     for name in day_files[2:]:
-        assert "No sessions on" in BeautifulSoup(files[name], "html.parser").get_text()
+        assert BeautifulSoup(files[name], "html.parser").select_one(
+            '[data-state="no-sessions"]'
+        )
 
 
 def test_daily_overviews_use_only_the_current_published_schedule(
@@ -119,8 +128,8 @@ def test_daily_overviews_use_only_the_current_published_schedule(
     for name in day_files:
         page = BeautifulSoup(files[name], "html.parser")
         assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
-        assert not page.select(".session")
-        assert "No sessions on" in page.get_text()
+        assert not page.select('article:is([data-kind="session"], [data-kind="break"])')
+        assert page.select_one('[data-state="no-sessions"]')
 
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
@@ -139,7 +148,7 @@ def test_daily_overview_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference == event.urls.schedule.full()
+                assert reference in {event.urls.schedule.full(), "https://example.org"}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(
@@ -150,8 +159,18 @@ def test_daily_overview_links_and_assets_work_after_extraction(
                 tmp_path / unquote(resolved.path.removeprefix(deployment))
             ).is_file()
     first = BeautifulSoup((tmp_path / day_files[0]).read_text(), "html.parser")
-    assert first.select_one(".session h3 a")["href"] == "../sessions/TOOLS01.html"
-    assert first.select_one(".session > p > a")["href"] == "../speakers/ADA0001.html"
+    assert (
+        first.select_one('article:is([data-kind="session"], [data-kind="break"]) h3 a')[
+            "href"
+        ]
+        == "../sessions/TOOLS01.html"
+    )
+    assert (
+        first.select_one(
+            'article[data-kind="session"] > [data-rel="speakers"] > li > a'
+        )["href"]
+        == "../speakers/ADA0001.html"
+    )
 
 
 def test_schedule_template_override_is_used_for_daily_overviews(
@@ -186,7 +205,9 @@ def test_daily_overviews_have_date_titles_and_overview_links(
         event.save(update_fields=["timezone"])
         files = StaticScheduleExporter(Event.objects.get(pk=event.pk)).get_files()
     overview = BeautifulSoup(files["index.html"], "html.parser")
-    assert [link["href"] for link in overview.select(".schedule-day h2 a")] == day_files
+    assert [
+        link["href"] for link in overview.select("section[data-day] h2 a")
+    ] == day_files
     for offset, name in enumerate(day_files):
         page = BeautifulSoup(files[name], "html.parser")
         date = event.date_from + dt.timedelta(days=offset)
@@ -195,7 +216,7 @@ def test_daily_overviews_have_date_titles_and_overview_links(
             == f"{date.isoformat()} – {event.name}"
         )
         assert page.select_one('header [data-field="event"]')["href"] == "../index.html"
-        assert page.select_one(".schedule-day h2 a")["href"] == f"../{name}"
+        assert page.select_one("section[data-day] h2 a")["href"] == f"../{name}"
         assert page.select_one('header [data-field="event"]').get_text() == str(
             event.name
         )

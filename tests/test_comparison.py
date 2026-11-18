@@ -25,7 +25,7 @@ pytestmark = pytest.mark.django_db
 
 
 def text(node):
-    return " ".join(node.get_text(" ", strip=True).split())
+    return " ".join(node.get_text(" ", strip=True).split()).replace(" .", ".")
 
 
 @pytest.mark.parametrize("language", ("en", "de"))
@@ -209,21 +209,29 @@ def test_extracted_site_contains_the_public_page_information(
     speaker_page = BeautifulSoup(
         (tmp_path / "speakers/ADA0001.html").read_text(), "html.parser"
     )
-    speaker_link = session.select_one(".speaker > h2 > a")
+    speaker_link = session.select_one('article[data-kind="speaker"] > h2 > a')
     assert speaker_link["href"] == "../speakers/ADA0001.html"
     assert text(speaker_link) == text(speaker_page.h1) == speaker.get_display_name()
     online_slots = overview.select(".pretalx-list-day .pretalx-session")
-    exported_slots = schedule.select("article.session")
+    exported_slots = schedule.select(
+        'article[data-kind="session"][data-view="summary"]'
+    )
     assert len(online_slots) == len(exported_slots) == 2
     for online, exported in zip(online_slots, exported_slots, strict=True):
         for selector in (".title", ".speakers", ".abstract", ".track", ".room"):
             assert text(online.select_one(selector)) in text(exported)
         assert text(online.select_one(".start")) == "10:00"
-        assert exported.find("time").get_text() == "10:00"
+        assert (
+            exported.select_one('[data-field="start"] time')
+            .get_text()
+            .endswith("10:00")
+        )
         assert text(online.select_one(".duration")) == "45min"
-        assert "45 min" in text(exported)
+        assert exported.select_one('[data-field="duration"] data')["value"] == "PT45M"
     online_speaker_slots = online_speaker.select(".speaker-talks .pretalx-session")
-    exported_speaker_slots = speaker_page.select(".speaker-sessions .session")
+    exported_speaker_slots = speaker_page.select(
+        '[data-rel="sessions"] article[data-kind="session"]'
+    )
     assert len(online_speaker_slots) == len(exported_speaker_slots) == 2
     for online, exported, date in zip(
         online_speaker_slots,
@@ -231,26 +239,33 @@ def test_extracted_site_contains_the_public_page_information(
         (slot.start.date(), slot.start.date() + dt.timedelta(days=1)),
         strict=True,
     ):
-        for selector in (".title", ".speakers", ".abstract", ".track", ".room"):
+        for selector in (".title", ".abstract", ".track", ".room"):
             assert text(online.select_one(selector)) in text(exported)
         assert exported.find("a")["href"] == "../sessions/TOOLS01.html"
-        assert exported.find("time", attrs={"datetime": date.isoformat()})
+        assert exported["data-day"] == date.isoformat()
         assert (
             text(online.select(".start")[-1])
-            == exported.find_all("time")[-1].get_text()
+            == exported.select_one('[data-field="start"] time')
+            .get_text()
+            .rsplit(", ", 1)[-1]
         )
         assert text(online.select_one(".duration")) == "45min"
-        assert "45 min" in text(exported)
-        assert online.select_one(".do-not-record-stack")["title"] in text(exported)
+        assert exported.select_one('[data-field="duration"] data')["value"] == "PT45M"
+        assert (
+            exported.select_one('[data-state="recording-forbidden"]')["aria-label"]
+            == online.select_one(".do-not-record-stack")["title"]
+        )
     for selector in (".abstract", ".description"):
         assert text(online_session.select_one(f".talk-content {selector}")) == text(
-            session.select_one(selector)
+            session.select_one(f'[data-field="{selector[1:]}"]')
         )
     for page in (session, speaker_page):
         assert text(online_speaker.select_one(".speaker-bio")) == text(
-            page.select_one(".speaker .biography")
+            page.select_one('article[data-kind="speaker"] [data-field="biography"]')
         )
-        photo = page.select_one(".speaker-avatar")
+        photo = page.select_one(
+            'article[data-kind="speaker"] > [data-field="image"] img'
+        )
         assert photo["src"] == "../" + quote(f"media/{uploads['avatar'].name}")
         assert photo.parent["href"] == photo["src"]
         assert (tmp_path / "media" / uploads["avatar"].name).read_bytes() == image_data
@@ -277,7 +292,9 @@ def test_extracted_site_contains_the_public_page_information(
     assert (
         tmp_path / "media" / speaker_document.answer_file.name
     ).read_bytes() == b"Public speaker document"
-    assert text(online_session.select_one(".signup-status")) in text(session)
+    assert session.select_one('[data-state="signup-open"]')["aria-label"] == text(
+        online_session.select_one(".signup-status")
+    )
     assert "Language:" in text(online_session)
     assert "English" in text(session)
     assert text(online_session.find(id="plugin-notice")) == text(
@@ -295,9 +312,15 @@ def test_extracted_site_contains_the_public_page_information(
     ):
         assert label in text(online_session) + " " + text(online_speaker)
         assert label in text(session)
-    assert online_session.select_one(".do-not-record")["title"] in text(session)
+    assert (
+        session.select_one('[data-state="recording-forbidden"]')["aria-label"]
+        == online_session.select_one(".do-not-record")["title"]
+    )
     for online, exported in zip(online_slots, exported_slots, strict=True):
-        assert online.select_one(".do-not-record-stack")["title"] in text(exported)
+        assert (
+            exported.select_one('[data-state="recording-forbidden"]')["aria-label"]
+            == online.select_one(".do-not-record-stack")["title"]
+        )
     for target, page in (("submission", online_session), ("speaker", online_speaker)):
         link = page.find(
             "a",
@@ -312,7 +335,7 @@ def test_extracted_site_contains_the_public_page_information(
         if target == "speaker":
             assert speaker_page.find("a", href=url)
     assert online_session.find("iframe")["src"] == recording_url
-    assert session.select_one(".recording a")["href"] == recording_url
+    assert session.select_one('[data-field="recording"] a')["href"] == recording_url
     for name in sorted(name for name in names if name.endswith(".html")):
         page = BeautifulSoup((tmp_path / name).read_text(), "html.parser")
         assert not page.find(["script", "iframe", "form", "button", "video", "audio"])

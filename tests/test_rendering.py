@@ -332,8 +332,11 @@ def test_export_interface_is_english_and_preserves_authored_content(
     assert session.h1.get_text() == submission.title
     assert submission.abstract in session.get_text()
     assert speaker.biography in session.get_text()
-    assert "Language: German" in session.get_text(" ", strip=True)
-    assert "This session will not be recorded." in session.get_text()
+    assert session.select_one('[data-field="language"] data').get_text() == "German"
+    assert (
+        session.select_one('[data-state="recording-forbidden"]')["aria-label"]
+        == "This session will not be recorded."
+    )
 
 
 def test_export_restores_the_active_locale_on_failure(event):
@@ -384,6 +387,9 @@ def test_templates_receive_prepared_page_data(published_talk_slot, event, mocker
     assert detail["session"]["language_name"] == "English"
     assert not detail["page"]["item"]["speakers"][0]["presentations"]
     overview = contexts["speakers/index.html"]
-    assert overview["page"]["items"][0]["presentations"][0]["code"] == "TOOLS01"
+    entry = overview["page"]["items"][0]
+    assert entry["relationship_mode"] == "references"
+    assert entry["presentations"][0]["code"] == "TOOLS01"
+    assert "speakers" not in entry["presentations"][0]
     assert overview["metadata"]["exporter_version"] == __version__
     assert all("navigation_days" not in context for context in contexts.values())

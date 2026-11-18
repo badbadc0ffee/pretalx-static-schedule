@@ -1,4 +1,5 @@
 import pytest
+from bs4 import BeautifulSoup
 from django.template.loader import render_to_string
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
@@ -48,7 +49,15 @@ def test_scalar_answers_match_online_page(
         )
 
     assertInHTML(f"<dt>{question.question}</dt>", html)
-    assertInHTML(online_answer, html)
+    if value:
+        assertInHTML(online_answer, html)
+    else:
+        assert (
+            BeautifulSoup(html, "html.parser").select_one('[data-state="no-response"]')[
+                "aria-label"
+            ]
+            == "No response"
+        )
 
 
 @pytest.mark.parametrize("target", ("submission", "speaker"))
@@ -113,4 +122,9 @@ def test_unanswered_typed_field(published_talk_slot, event, variant, target):
         )
 
     assertInHTML(f"<dt>{question.question}</dt>", html)
-    assertInHTML("<dd>No response</dd>", html)
+    assert (
+        BeautifulSoup(html, "html.parser").select_one('[data-state="no-response"]')[
+            "aria-label"
+        ]
+        == "No response"
+    )

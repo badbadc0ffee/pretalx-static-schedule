@@ -5,6 +5,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.apps import apps
 from django.template.loader import get_template
+from django.utils.formats import date_format
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
 
@@ -144,7 +145,7 @@ def test_base_override_changes_all_pages(
     for name in ("index.html", "sessions/TOOLS01.html"):
         html = files[name].decode("utf-8")
         assertInHTML(
-            f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
+            f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
             html,
         )
         assert "Building &lt;tools&gt;" in html
@@ -246,7 +247,7 @@ def test_override_extends_default_page(
     else:
         assert "Building &lt;tools&gt;" in html
         assertInHTML(
-            f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
+            f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
             html,
         )
 
@@ -350,8 +351,8 @@ def test_session_summary_template_override(
     override = template_directory / template_name
     override.parent.mkdir()
     override.write_text(
-        '<article class="custom-session"><a href="{{ session_prefix }}{{ slot.submission.code }}.html">'
-        "{{ slot.submission.title }}</a></article>",
+        '<article class="custom-session"><a href="{{ page.asset_prefix }}{{ session.filename }}">'
+        "{{ session.title }}</a></article>",
         encoding="utf-8",
     )
     with scope(event=event):

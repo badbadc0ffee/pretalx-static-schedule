@@ -1,0 +1,38 @@
+{% load tz %}
+{% timezone metadata.timezone %}
+    <dl>
+        <div data-field="start">
+            <dt aria-label="Start"></dt>
+            <dd><time datetime="{{ occurrence.start|date:'c' }}">{{ occurrence.start|date:"F j, Y, H:i" }}</time></dd>
+        </div>
+        <div data-field="end">
+            <dt aria-label="End"></dt>
+            <dd><time datetime="{{ occurrence.end|date:'c' }}">{{ occurrence.end|date:"F j, Y, H:i" }}</time></dd>
+        </div>
+        <div data-field="duration">
+            <dt aria-label="Duration"></dt>
+            <dd>
+                <data
+                    value="{{ occurrence.duration_iso }}"
+                    aria-label="{{ occurrence.duration }} minutes"
+                >{{ occurrence.duration }}</data>
+            </dd>
+        </div>
+        <div data-field="room">
+            <dt aria-label="Room"></dt>
+            <dd>
+                <a
+                    data-room="{{ occurrence.room_id }}"
+                    href="{{ page.asset_prefix }}rooms/{{ occurrence.room_id }}.html"
+                    {% if occurrence.room_description %}title="{{ occurrence.room_description }}"{% endif %}
+                >{{ occurrence.room_name }}</a>
+            </dd>
+        </div>
+    </dl>
+    {% if occurrence.signup_status == "full" %}<p data-state="signup-full" aria-label="This session is currently full.">
+        </p>{% elif occurrence.signup_status == "open" %}<p
+            data-state="signup-open"
+            aria-label="This session requires attendees to sign up."
+        >
+        </p>{% endif %}
+{% endtimezone %}

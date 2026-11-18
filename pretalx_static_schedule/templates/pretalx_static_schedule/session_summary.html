@@ -1,47 +1,5 @@
-{% load i18n phrases rich_text %}
-<article
-    class="session"
-    style="--track-color: {% if slot.submission %}{{ slot.submission.track.color|default:'var(--color-primary)' }}{% else %}var(--color-grey-light){% endif %}"
->
-    {% if show_date %}
-        <p><time datetime="{{ slot.start|date:'Y-m-d' }}">{{ slot.start|date:"DATE_FORMAT" }}</time></p>
-    {% endif %}
-    <p>
-        <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>
-        · {{ slot.duration }} {% translate "min" %}
-    </p>
-    {% if slot.submission %}
-        <h3>
-            <a href="{{ session_prefix }}{{ slot.submission.code }}.html">{{ slot.submission.title }}</a>
-        </h3>
-        <p>
-            {% for speaker in slot.submission.sorted_speakers %}<a
-                    href="{{ speaker.urls.public }}"
-                >{{ speaker.get_display_name }}</a>{% if not forloop.last %},
-                {% endif %}{% endfor %}
-        </p>
-        <div class="abstract">{{ slot.submission.abstract|rich_text_without_links }}</div>
-        {% if slot.submission.track %}<p class="track">
-                <a
-                    href="{{ asset_prefix }}tracks/{{ slot.submission.track_id }}.html"
-                >{{ slot.submission.track.name }}</a>
-            </p>{% endif %}
-        {% include "pretalx_static_schedule/tags.html" with submission=slot.submission %}
-        {% if slot.submission.do_not_record %}<p>
-                {% phrase "phrases.agenda.schedule_do_not_record" %}
-            </p>{% endif %}
-        {% if slot.signup_status == "full" %}
-            <p>{% translate "This session is currently full." %}</p>
-        {% elif slot.signup_status == "open" %}
-            <p>{% translate "This session requires attendees to sign up." %}</p>
-        {% endif %}
-    {% else %}
-        <h3>{{ slot.description }}</h3>
-    {% endif %}
-    <p class="room">
-        <a
-            href="{{ asset_prefix }}rooms/{{ slot.room_id }}.html"
-            title="{{ slot.room.description|default:'' }}"
-        >{{ slot.room.name }}</a>
-    </p>
-</article>
+{% if session.code %}
+    {% include "pretalx_static_schedule/session_article.html" %}
+{% else %}
+    {% include "pretalx_static_schedule/break.html" with occurrence=session %}
+{% endif %}

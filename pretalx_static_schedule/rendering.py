@@ -43,6 +43,7 @@ class ScheduleRenderData:
         slots_by_code = {}
         for day in self.days:
             day["date"] = day["start"].date().isoformat()
+            day["label"] = date_format(day["start"], "F j, Y")
             day["filename"] = f"days/{day['start']:%y-%m-%d}.html"
             day["attributes"] = {"data-day": day["date"]}
             day["talks"] = sorted(
@@ -93,6 +94,7 @@ class ScheduleRenderData:
             self.sessions[code] = {
                 "code": code,
                 "filename": f"sessions/{code}.html",
+                "url": str(submission.urls.public),
                 "submission": submission,
                 "title": submission.title,
                 "abstract": submission.abstract,
@@ -100,6 +102,7 @@ class ScheduleRenderData:
                 "image": submission.image,
                 "language": submission.content_locale,
                 "language_name": language_name(submission.content_locale),
+                "track": submission.track,
                 "attributes": attributes,
                 "slots": slots,
                 "occurrences": [self.occurrences[slot.pk] for slot in slots],
@@ -115,6 +118,7 @@ class ScheduleRenderData:
                     self.speakers[profile.code] = {
                         "code": profile.code,
                         "filename": f"speakers/{profile.code}.html",
+                        "url": str(profile.urls.public),
                         "profile": profile,
                         "name": profile.get_display_name(),
                         "biography": profile.biography,
@@ -204,8 +208,10 @@ class ScheduleRenderData:
         ]
 
     def session_view(
-        self, code, *, occurrence=None, parent=None, expand=True, view="summary"
+        self, code, *, occurrence=None, parent=None, expand=None, view="summary"
     ):
+        if expand is None:
+            expand = view == "detail"
         session = self.sessions[code]
         attributes = session["attributes"] | {"data-view": view}
         if occurrence is not None:
@@ -223,10 +229,12 @@ class ScheduleRenderData:
                         "code": speaker_code,
                         "name": speaker["name"],
                         "filename": speaker["filename"],
+                        "url": speaker["url"],
                         "attributes": speaker["attributes"],
                     }
                 )
         return session | {
+            "view": view,
             "attributes": attributes,
             "occurrences": [occurrence]
             if occurrence is not None
@@ -235,7 +243,9 @@ class ScheduleRenderData:
             "relationship_mode": "summaries" if expand else "references",
         }
 
-    def speaker_view(self, code, *, parent=None, expand=True, view="summary"):
+    def speaker_view(self, code, *, parent=None, expand=None, view="summary"):
+        if expand is None:
+            expand = view == "detail"
         speaker = self.speakers[code]
         presentations = []
         if not omit_backlink("session", speaker["session_codes"], parent):
@@ -255,11 +265,13 @@ class ScheduleRenderData:
                         "title": session["title"],
                         "language": session["language"],
                         "filename": session["filename"],
+                        "url": session["url"],
                         "occurrence": occurrence,
                         "attributes": occurrence["attributes"],
                     }
                 )
         return speaker | {
+            "view": view,
             "attributes": speaker["attributes"] | {"data-view": view},
             "presentations": presentations,
             "relationship_mode": "summaries" if expand else "references",
@@ -310,7 +322,13 @@ class ScheduleRenderData:
                     else occurrence
                 )
             groups.append(
-                {"date": day["date"], "attributes": day["attributes"], "items": items}
+                {
+                    "date": day["date"],
+                    "label": day["label"],
+                    "filename": day["filename"],
+                    "attributes": day["attributes"],
+                    "items": items,
+                }
             )
         return self.page(kind, filename, title) | {"days": days, "groups": groups}
 

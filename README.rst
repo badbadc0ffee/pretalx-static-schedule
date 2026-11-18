@@ -34,7 +34,7 @@ ZIP contents
 * ``speakers/index.html``: alphabetical overview of speakers.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
-* ``assets/variables.css``: the original pretalx CSS variables with event color overrides.
+* ``assets/variables.css``: pretalx CSS variables with event, track and public-tag color rules.
 * ``media/``: uploaded images and public files, when present.
 
 Speaker pages include the biography, public photo, public answers and files,
@@ -70,8 +70,18 @@ grouped by schedule day. Empty rooms have an empty page. Rooms appear in their
 configured order. Room names on session cards and detail pages link to their
 room overview. Room filenames use IDs, so renaming a room does not change its URL.
 
-Session pages show the content language and assigned track, even when these
-fields are hidden on the public pages.
+Every session summary shows the title, image when present, abstract, scheduled
+date and times, actual duration, room, content language, assigned track and
+public tags. The same component is used on schedule, day, track, room and
+speaker pages. Session details add the full description, every scheduled
+occurrence, public answers, files, recordings and plugin content.
+
+Overview entries use compact links for related speakers and presentations.
+Session detail pages embed speaker summaries; speaker detail pages embed
+session summaries. Those embedded summaries also use compact relationship links.
+A relationship list is omitted only when its sole distinct entity is the
+surrounding parent. Repeated occurrences of one session still count as one
+entity. Root overview and detail lists include single entries.
 
 Pages use the event's primary color. Session cards and track labels use the
 assigned track color. Public tags appear as badges with their assigned colors.
@@ -103,7 +113,7 @@ These paths override the default templates:
 
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
 * ``pretalx_static_schedule/navigation.html``: shared navigation for all pages.
-* ``pretalx_static_schedule/event_variables.css``: event color overrides appended to the exported variables stylesheet.
+* ``pretalx_static_schedule/event_variables.css``: event, track and public-tag colors appended to the exported variables stylesheet.
 * ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
@@ -111,8 +121,13 @@ These paths override the default templates:
 * ``pretalx_static_schedule/track.html``: track pages.
 * ``pretalx_static_schedule/room.html``: room overviews.
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
-* ``pretalx_static_schedule/speaker_summary.html``: shared speaker summary and optional session links on session pages and the speaker overview.
+* ``pretalx_static_schedule/speaker_article.html``: canonical speaker summary and detail structure.
+* ``pretalx_static_schedule/session_article.html``: canonical session summary and detail structure.
+* ``pretalx_static_schedule/speaker_summary.html``: shared speaker summaries in every context.
 * ``pretalx_static_schedule/session_summary.html``: session cards on overview, track, room and speaker pages.
+* ``pretalx_static_schedule/session_groups.html``: schedule-day groups and chronological session lists.
+* ``pretalx_static_schedule/occurrence.html``: scheduled times, duration, room and signup state.
+* ``pretalx_static_schedule/break.html``: scheduled breaks.
 * ``pretalx_static_schedule/tags.html``: public tag badges.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
@@ -139,14 +154,16 @@ is no longer supplied. The shared shell uses semantic ``data-field``,
 ``data-group`` and ``data-page`` attributes. Its visible captions come from
 CSS, with English accessible names in HTML.
 
-The ``speaker_summary.html`` template is shared by session pages and the
-speaker overview. It includes ``speaker_info.html``, which is also used on
-individual speaker pages.
-The overview includes ``speaker_summary.html`` with ``show_all_sessions=True``
-to show the session list even for speakers with only one session.
-The ``session_summary.html`` template uses ``session_prefix`` for relative
-session links. Use ``{{ session_prefix }}{{ slot.submission.code }}.html`` in
-custom session cards.
+Summary templates receive a prepared ``speaker`` or ``session`` record and
+``heading_level`` for the current document depth. Their article templates also
+serve detail pages, using ``view`` to select the additional fields. Relationships
+are already prepared as ``speaker.presentations`` or ``session.speakers``;
+templates do not count entities or expand them further.
+The previous ``show_all_sessions``, ``show_date`` and ``session_prefix`` options
+are no longer used. In custom session summaries, use ``session.title`` and
+``session.url``. Internal pretalx URLs are rewritten to relative archive paths.
+Session prose carries its known language; speaker biography language is not
+inferred from the sessions.
 
 Keep links to exported pages and assets relative. Restart pretalx after changing
 templates. Django caches templates in production.

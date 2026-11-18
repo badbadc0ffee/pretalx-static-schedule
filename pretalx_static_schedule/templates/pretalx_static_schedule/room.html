@@ -1,27 +1,9 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load i18n rich_text tz %}
+{% load rich_text %}
 {% block content %}
-    <article class="room-detail">
-        <h1>{{ room.name }}</h1>
-        {% if room.description %}<section class="description">
-                {{ room.description|rich_text_abslinks }}
-            </section>{% endif %}
-        {% timezone event.timezone %}
-            {% for day in days %}
-                <section class="schedule-day">
-                    <h2>
-                        <a href="../{{ day.filename }}"><time
-                                datetime="{{ day.start|date:'Y-m-d' }}"
-                            >{{ day.start|date:"l" }},
-                                {{ day.start|date:"DATE_FORMAT" }}</time></a>
-                    </h2>
-                    {% for slot in day.talks %}
-                        {% include "pretalx_static_schedule/session_summary.html" with session_prefix="../sessions/" %}
-                    {% endfor %}
-                </section>
-            {% empty %}
-                <p>{% translate "No sessions in this room." %}</p>
-            {% endfor %}
-        {% endtimezone %}
-    </article>
+    <h1>{{ page.title }}</h1>
+    {% if page.room.description %}<div data-field="description">
+            {{ page.room.description|rich_text_abslinks }}
+        </div>{% endif %}
+    {% include "pretalx_static_schedule/session_groups.html" %}
 {% endblock %}

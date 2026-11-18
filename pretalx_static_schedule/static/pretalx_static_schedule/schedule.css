@@ -19,9 +19,9 @@ a:focus {
 
 header,
 main,
-.schedule-day,
-.speaker,
-.resources {
+main > section[data-day],
+article[data-kind="speaker"],
+[data-rel="files"] {
     margin-bottom: 2rem;
 }
 
@@ -115,7 +115,8 @@ footer {
     padding-top: 1rem;
 }
 
-.session {
+article[data-kind="session"][data-view="summary"],
+article[data-kind="break"] {
     border: 1px solid var(--color-border);
     border-inline-start: 0.3rem solid var(--track-color);
     border-radius: 0.25rem;
@@ -123,22 +124,22 @@ footer {
     margin-bottom: 1rem;
 }
 
-.session .abstract {
+article[data-kind="session"][data-view="summary"] > [data-field="abstract"] {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     overflow: hidden;
 }
 
-.track {
+[data-field="track"] {
     color: var(--track-color);
 }
 
-.track a {
+[data-field="track"] a {
     color: inherit;
 }
 
-.tag-badge {
+[data-tag] {
     display: inline-block;
     padding: 0.1rem 0.4rem;
     border-radius: var(--size-border-radius);
@@ -161,10 +162,89 @@ header [data-field="banner"] {
     object-fit: cover;
 }
 
-.speaker-avatar {
+article[data-kind="speaker"] > [data-field="image"] img {
     max-width: 8rem;
 }
 
 pre {
     overflow: auto;
+}
+
+article[data-kind="session"] {
+    border-color: var(--track-color, var(--color-primary));
+}
+
+article[data-kind="session"][data-view="summary"] {
+    border-inline-start-color: var(--track-color, var(--color-primary));
+}
+
+article[data-kind="break"] {
+    --track-color: var(--color-grey-light);
+}
+
+article[data-kind="speaker"][data-view="summary"] {
+    padding: 1rem;
+}
+
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6) {
+    font-size: 1.25rem;
+    margin: 0 0 1rem;
+}
+
+[data-rel="sessions"],
+[data-rel="speakers"],
+[data-rel="occurrences"],
+[data-rel="tags"] {
+    list-style: none;
+    padding: 0;
+}
+
+[data-rel="tags"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+[data-field="duration"] data::after {
+    content: " min";
+}
+
+[data-field="start"] > dt::before {
+    content: "Start";
+}
+[data-field="end"] > dt::before {
+    content: "End";
+}
+[data-field="duration"] > dt::before {
+    content: "Duration";
+}
+[data-field="room"] > dt::before {
+    content: "Room";
+}
+[data-field="track"] > dt::before {
+    content: "Track";
+}
+[data-field="language"] > dt::before {
+    content: "Language";
+}
+[data-state="recording-forbidden"]::before {
+    content: "This session will not be recorded.";
+}
+[data-state="signup-full"]::before {
+    content: "This session is currently full.";
+}
+[data-state="signup-open"]::before {
+    content: "This session requires attendees to sign up.";
+}
+[data-state="no-sessions"]::before {
+    content: "No sessions.";
+}
+[data-state="no-speakers"]::before {
+    content: "No speakers.";
+}
+[data-state="no-file"]::before {
+    content: "No file provided";
+}
+[data-state="no-response"]::before {
+    content: "No response";
 }

@@ -1,0 +1,16 @@
+{% for group in page.groups %}
+    <section data-day="{{ group.date }}">
+        <h2>
+            <a href="{{ page.asset_prefix }}{{ group.filename }}"><time
+                    datetime="{{ group.date }}"
+                >{{ group.label }}</time></a>
+        </h2>
+        {% if group.items %}
+            <ol data-rel="sessions" aria-label="Sessions">
+                {% for session in group.items %}<li>
+                        {% include "pretalx_static_schedule/session_summary.html" with heading_level=3 %}
+                    </li>{% endfor %}
+            </ol>
+        {% else %}<p data-state="no-sessions" aria-label="No sessions."></p>{% endif %}
+    </section>
+{% empty %}<p data-state="no-sessions" aria-label="No sessions."></p>{% endfor %}

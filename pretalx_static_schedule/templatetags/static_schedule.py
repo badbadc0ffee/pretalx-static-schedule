@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urljoin, urlsplit, urlunsplit
@@ -26,6 +27,15 @@ from pretalx.common.templatetags.rich_text import (
 from pretalx.common.urls import get_base_url
 
 register = template.Library()
+
+
+@register.filter
+def css_color(value):
+    return (
+        value
+        if re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})", value or "")
+        else "var(--color-primary)"
+    )
 
 
 @register.simple_tag(takes_context=True)

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import render_to_string
 from django.test.html import parse_html
+from django.utils.formats import date_format
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
 
@@ -46,7 +47,7 @@ def test_empty_published_schedule(published_schedule, event, day_files):
     assert page.main.h1["aria-label"] == "All sessions"
     assert page.select_one('[data-field="event"]').get_text() == str(event.name)
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
-    assert html.count("No sessions on") == event.duration
+    assert html.count('data-state="no-sessions"') == event.duration
 
 
 def test_schedule_overview(published_talk_slot, event):
@@ -56,14 +57,20 @@ def test_schedule_overview(published_talk_slot, event):
     html = files["index.html"].decode("utf-8")
     assertInHTML('<a href="sessions/TOOLS01.html">Building &lt;tools&gt;</a>', html)
     assertInHTML(
-        f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>', html
+        f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
+        html,
     )
     assert "45 min" in html
     assert "Room A" in html
     assert "Ada Example" in html
     assert "Tools" in html
     assert "Europe/Berlin" in html
-    assertInHTML("<p>A <strong>small</strong> tool with a project.</p>", html)
+    assert (
+        BeautifulSoup(html, "html.parser").select_one('[data-field="abstract"] a')[
+            "href"
+        ]
+        == "https://example.org"
+    )
     assert "Private organiser notes" not in html
 
 
@@ -75,18 +82,20 @@ def test_session_detail(published_talk_slot, event):
             .decode("utf-8")
         )
 
-    assertInHTML("<h1>Building &lt;tools&gt;</h1>", html)
+    assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', html)
     assertInHTML(f'<a data-field="event" href="../index.html">{event.name}</a>', html)
     assertInHTML(
-        f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>', html
+        f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
+        html,
     )
     assertInHTML(
-        f'<time datetime="{published_talk_slot.end.isoformat()}">10:45</time>', html
+        f'<time datetime="{published_talk_slot.end.isoformat()}">{date_format(published_talk_slot.end.astimezone(event.tz), "F j, Y, H:i")}</time>',
+        html,
     )
     assert "45 min" in " ".join(html.split())
     assert "Room A" in html
     assertInHTML(
-        f'<a class="room" href="../rooms/{published_talk_slot.room_id}.html" title="Main hall">Room A</a>',
+        f'<a data-room="{published_talk_slot.room_id}" href="../rooms/{published_talk_slot.room_id}.html" title="Main hall">Room A</a>',
         html,
     )
     assert "Ada Example" in html
@@ -230,7 +239,12 @@ def test_language_and_recording_flag(published_talk_slot, event):
         files = StaticScheduleExporter(Event.objects.get(pk=event.pk)).get_files()
 
     html = files["sessions/TOOLS01.html"].decode("utf-8")
-    assertInHTML("<p><strong>Language:</strong> English</p>", html)
+    assert (
+        BeautifulSoup(html, "html.parser")
+        .select_one('[data-field="language"] data')
+        .get_text()
+        == "English"
+    )
     for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         assert "This session will not be recorded." in files[name].decode("utf-8")
 
@@ -264,7 +278,11 @@ def test_session_content_language_is_always_exported(
             .decode("utf-8")
         )
 
-    assertInHTML(f"<p><strong>Language:</strong> {language}</p>", html)
+    field = BeautifulSoup(html, "html.parser").select_one(
+        '[data-field="language"] data'
+    )
+    assert field.get_text() == language
+    assert field["value"] == content_locale
 
 
 @pytest.mark.parametrize("use_tracks", (True, False))
@@ -291,12 +309,13 @@ def test_session_track_is_exported_when_assigned(
         )
 
     if has_track:
-        assertInHTML(
-            f'<p class="track"><strong>Track:</strong> <a href="../tracks/{submission.track_id}.html">Tools &amp; &lt;practice&gt;</a></p>',
-            html,
-        )
+        link = BeautifulSoup(html, "html.parser").select_one('[data-field="track"] a')
+        assert link["href"] == f"../tracks/{submission.track_id}.html"
+        assert link.get_text() == "Tools & <practice>"
     else:
-        assert "Track:" not in html
+        assert not BeautifulSoup(html, "html.parser").main.select(
+            '[data-field="track"]'
+        )
 
 
 @pytest.mark.parametrize(
@@ -360,7 +379,10 @@ def test_other_speaker_appearances(published_talk_slot, event):
             .decode("utf-8")
         )
 
-    assertInHTML('<a href="OTHER01.html">Other appearance</a>', html)
+    assert (
+        BeautifulSoup(html, "html.parser").find("a", string="Other appearance")["href"]
+        == "OTHER01.html"
+    )
     assert "Unrelated appearance" not in html
 
 
@@ -383,7 +405,10 @@ def test_repeated_session_has_one_detail_page(published_talk_slot, event):
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     assert "Room A" in html
     assert "Room B" in html
-    assertInHTML(f'<time datetime="{second_start.isoformat()}">10:00</time>', html)
+    assertInHTML(
+        f'<time datetime="{second_start.isoformat()}">{date_format(second_start.astimezone(event.tz), "F j, Y, H:i")}</time>',
+        html,
+    )
     assert "15 min" in " ".join(html.split())
 
 
@@ -494,10 +519,12 @@ def test_pages_use_published_times_and_rooms(published_talk_slot, event):
         page = BeautifulSoup(html, "html.parser")
         assert {
             room.get_text(strip=True)
-            for room in page.select(".session .room, .session-times .room")
+            for room in page.select(
+                'article:is([data-kind="session"], [data-kind="break"]) [data-field="room"], [data-rel="occurrences"] [data-field="room"]'
+            )
         } == {"Room A"}
         assertInHTML(
-            f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
+            f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
             html,
         )
 

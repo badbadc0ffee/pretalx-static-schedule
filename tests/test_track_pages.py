@@ -88,16 +88,22 @@ def test_track_pages_group_only_their_published_sessions_by_schedule_day(
     assert page.h1.get_text() == "Tools"
     assert page.title.get_text(strip=True) == f"Tools – {event.name}"
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
-    groups = page.select(".schedule-day")
+    groups = page.select("section[data-day]")
     assert len(groups) == 2
     assert [group.select_one("h2 a")["href"] for group in groups] == [
         f"../{name}" for name in day_files[:2]
     ]
     assert [
-        title.get_text(strip=True) for title in groups[0].select(".session h3")
+        title.get_text(strip=True)
+        for title in groups[0].select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
     ] == ["Earlier session", "Building <tools>", "Late session"]
     assert [
-        title.get_text(strip=True) for title in groups[1].select(".session h3")
+        title.get_text(strip=True)
+        for title in groups[1].select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
     ] == ["Second day session", "Building <tools>"]
     assert "02:00" in groups[0].get_text()
     assert "Room A" in page.get_text()
@@ -105,11 +111,16 @@ def test_track_pages_group_only_their_published_sessions_by_schedule_day(
     for excluded in ("Other track session", "Untracked session", "Tea break"):
         assert excluded not in page.get_text()
     other_page = BeautifulSoup(files[f"tracks/{other.pk}.html"], "html.parser")
-    assert len(other_page.select(".session")) == 1
+    assert (
+        len(other_page.select('article:is([data-kind="session"], [data-kind="break"])'))
+        == 1
+    )
     empty_page = BeautifulSoup(files[f"tracks/{empty.pk}.html"], "html.parser")
-    assert "No sessions in this track." in empty_page.get_text()
+    assert empty_page.select_one('[data-state="no-sessions"]')
     assert "Unscheduled session" not in empty_page.get_text()
-    assert not empty_page.select(".schedule-day, .session")
+    assert not empty_page.select(
+        'section[data-day], article:is([data-kind="session"], [data-kind="break"])'
+    )
     overview = BeautifulSoup(files["index.html"], "html.parser")
     assert [link.get_text() for link in overview.select('[data-group="tracks"] a')] == [
         "Empty track",
@@ -129,8 +140,8 @@ def test_track_pages_use_the_current_published_schedule(published_talk_slot, eve
         files[f"tracks/{published_talk_slot.submission.track_id}.html"], "html.parser"
     )
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
-    assert "No sessions in this track." in page.get_text()
-    assert not page.select(".session")
+    assert page.select_one('[data-state="no-sessions"]')
+    assert not page.select('article:is([data-kind="session"], [data-kind="break"])')
 
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
@@ -153,7 +164,7 @@ def test_track_links_and_assets_work_after_extraction(
         (track_file, "../"),
     ):
         page = BeautifulSoup((tmp_path / name).read_text(), "html.parser")
-        assert page.select_one(".track a")["href"] == prefix + track_file
+        assert page.select_one('[data-field="track"] a')["href"] == prefix + track_file
         assert page.find("link", href=prefix + "assets/schedule.css")
         assert page.find("link", href=prefix + "assets/variables.css")
         for element in page.select("[href], [src]"):
@@ -171,8 +182,18 @@ def test_track_links_and_assets_work_after_extraction(
             ).is_file()
     page = BeautifulSoup((tmp_path / track_file).read_text(), "html.parser")
     assert page.header.find("a")["href"] == "../index.html"
-    assert page.select_one(".session h3 a")["href"] == "../sessions/TOOLS01.html"
-    assert page.select_one(".session > p > a")["href"] == "../speakers/ADA0001.html"
+    assert (
+        page.select_one('article:is([data-kind="session"], [data-kind="break"]) h3 a')[
+            "href"
+        ]
+        == "../sessions/TOOLS01.html"
+    )
+    assert (
+        page.select_one(
+            'article[data-kind="session"] > [data-rel="speakers"] > li > a'
+        )["href"]
+        == "../speakers/ADA0001.html"
+    )
     assert not page.find(["script", "form", "iframe"])
 
 
@@ -203,15 +224,24 @@ def test_track_description_links_and_escaped_names(
     page = BeautifulSoup(files[f"tracks/{track.pk}.html"], "html.parser")
     assert page.h1.get_text() == track.name
     assert page.title.get_text(strip=True) == f"{track.name} – {event.name}"
-    assert page.select_one(".description strong").get_text() == "Practical tools"
+    assert (
+        page.select_one('[data-field="description"] strong').get_text()
+        == "Practical tools"
+    )
     assert [
-        (link.get_text(), link["href"]) for link in page.select(".description a")
+        (link.get_text(), link["href"])
+        for link in page.select('[data-field="description"] a')
     ] == [
         ("Schedule", "../index.html"),
         ("Session", "../sessions/TOOLS01.html"),
         ("Speaker", "../speakers/ADA0001.html"),
     ]
-    assert page.select_one(".track-detail")["style"] == "--track-color: #2a6b8c"
+    assert page.main["data-track"] == str(track.pk)
+    assert "style" not in page.main.attrs
+    assert (
+        f'[data-track="{track.pk}"] {{\n    --track-color: #2a6b8c;'
+        in files["assets/variables.css"].decode()
+    )
     assert not page.find("practice")
 
 
@@ -235,4 +265,6 @@ def test_track_template_can_extend_the_default(
     )
     assert "Custom track note" in page.get_text()
     assert page.h1.get_text() == "Tools"
-    assert len(page.select(".session")) == 1
+    assert (
+        len(page.select('article:is([data-kind="session"], [data-kind="break"])')) == 1
+    )

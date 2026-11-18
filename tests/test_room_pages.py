@@ -94,22 +94,30 @@ def test_room_pages_group_published_sessions_and_breaks_by_schedule_day(
     }
     page = BeautifulSoup(files[f"rooms/{main.pk}.html"], "html.parser")
     assert page.h1.get_text() == "Room A"
-    groups = page.select(".schedule-day")
+    groups = page.select("section[data-day]")
     assert len(groups) == 2
     assert [group.select_one("h2 a")["href"] for group in groups] == [
         f"../{name}" for name in day_files[:2]
     ]
     assert [
-        title.get_text(strip=True) for title in groups[0].select(".session h3")
+        title.get_text(strip=True)
+        for title in groups[0].select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
     ] == ["Earlier session", "First session", "Tea break", "Late session"]
     assert [
-        title.get_text(strip=True) for title in groups[1].select(".session h3")
+        title.get_text(strip=True)
+        for title in groups[1].select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3'
+        )
     ] == ["Second day session", "First session"]
     assert "02:00" in groups[0].get_text()
-    assert {label.get_text(strip=True) for label in page.select(".session .track")} == {
-        "Tools",
-        "Art",
-    }
+    assert {
+        label.get_text(strip=True)
+        for label in page.select(
+            'article:is([data-kind="session"], [data-kind="break"]) [data-field="track"]'
+        )
+    } == {"Tools", "Art"}
     for excluded in (
         "Other room session",
         "Unscheduled session",
@@ -118,14 +126,20 @@ def test_room_pages_group_published_sessions_and_breaks_by_schedule_day(
     ):
         assert excluded not in page.get_text()
     other_page = BeautifulSoup(files[f"rooms/{other.pk}.html"], "html.parser")
-    assert [title.get_text() for title in other_page.select(".session h3 a")] == [
-        "Other room session",
-        "First session",
-    ]
-    assert not page.select(".session h3 a[href$='OUTSIDE.html']")
+    assert [
+        title.get_text()
+        for title in other_page.select(
+            'article:is([data-kind="session"], [data-kind="break"]) h3 a'
+        )
+    ] == ["Other room session", "First session"]
+    assert not page.select(
+        'article:is([data-kind="session"], [data-kind="break"]) h3 a[href$=\'OUTSIDE.html\']'
+    )
     empty_page = BeautifulSoup(files[f"rooms/{empty.pk}.html"], "html.parser")
-    assert "No sessions in this room." in empty_page.get_text()
-    assert not empty_page.select(".session, .schedule-day")
+    assert empty_page.select_one('[data-state="no-sessions"]')
+    assert not empty_page.select(
+        'article:is([data-kind="session"], [data-kind="break"]), section[data-day]'
+    )
     for name, prefix in (("index.html", ""), (day_files[0], "../")):
         overview = BeautifulSoup(files[name], "html.parser")
         assert [
@@ -148,8 +162,8 @@ def test_room_pages_use_only_the_current_published_schedule(published_talk_slot,
         files[f"rooms/{published_talk_slot.room_id}.html"], "html.parser"
     )
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
-    assert "No sessions in this room." in page.get_text()
-    assert not page.select(".session")
+    assert page.select_one('[data-state="no-sessions"]')
+    assert not page.select('article:is([data-kind="session"], [data-kind="break"])')
 
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
@@ -188,7 +202,7 @@ def test_room_links_and_assets_work_after_extraction(
         (room_file, "../"),
     ):
         page = BeautifulSoup((tmp_path / name).read_text(), "html.parser")
-        room_links = page.select("a.room, .room a")
+        room_links = page.select('a[data-room], [data-field="room"] a')
         assert room_links
         assert {link["href"] for link in room_links} == {prefix + room_file}
         assert page.find("link", href=prefix + "assets/schedule.css")
@@ -208,13 +222,21 @@ def test_room_links_and_assets_work_after_extraction(
             ).is_file()
     page = BeautifulSoup((tmp_path / room_file).read_text(), "html.parser")
     assert page.header.find("a")["href"] == "../index.html"
-    assert page.select_one(".session h3 a")["href"] == "../sessions/TOOLS01.html"
+    assert (
+        page.select_one('article:is([data-kind="session"], [data-kind="break"]) h3 a')[
+            "href"
+        ]
+        == "../sessions/TOOLS01.html"
+    )
     assert page.find("a", href="../speakers/ADA0001.html")
     assert not page.find(["script", "form", "iframe"])
     detail = BeautifulSoup(
         (tmp_path / "sessions/TOOLS01.html").read_text(), "html.parser"
     )
-    assert detail.select_one(".speaker-sessions a.room")["href"] == "../" + room_file
+    assert (
+        detail.select_one('[data-rel="sessions"] a[data-room]')["href"]
+        == "../" + room_file
+    )
 
 
 @pytest.mark.parametrize("absolute", (False, True))
@@ -244,9 +266,12 @@ def test_room_descriptions_names_and_links(
     page = BeautifulSoup(files[f"rooms/{room.pk}.html"], "html.parser")
     assert page.h1.get_text() == room.name
     assert page.title.get_text(strip=True) == f"{room.name} – {event.name}"
-    assert page.select_one(".description strong").get_text() == "Main hall"
+    assert (
+        page.select_one('[data-field="description"] strong').get_text() == "Main hall"
+    )
     assert [
-        (link.get_text(), link["href"]) for link in page.select(".description a")
+        (link.get_text(), link["href"])
+        for link in page.select('[data-field="description"] a')
     ] == [
         ("Schedule", "../index.html"),
         ("Session", "../sessions/TOOLS01.html"),
@@ -276,4 +301,6 @@ def test_room_template_can_extend_the_default(
     )
     assert "Custom room note" in page.get_text()
     assert page.h1.get_text() == "Room A"
-    assert len(page.select(".session")) == 1
+    assert (
+        len(page.select('article:is([data-kind="session"], [data-kind="break"])')) == 1
+    )

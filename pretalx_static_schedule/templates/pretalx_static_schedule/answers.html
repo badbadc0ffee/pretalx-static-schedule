@@ -1,14 +1,16 @@
-{% load i18n rich_text static_schedule %}
+{% load rich_text static_schedule %}
 {% if answers %}
-    <dl class="public-answers">
+    <dl data-field="public-answers">
         {% for answer in answers %}
             <dt>{{ answer.question.question }}</dt>
             <dd>
                 {% if answer.question.variant == "file" %}
                     {% local_asset answer.answer_file as answer_url %}
-                    {% if answer_url %}<a
-                            href="{{ answer_url }}"
-                        >{{ answer.answer_file }}</a>{% else %}{% translate "No file provided" %}{% endif %}
+                    {% if answer_url %}<a href="{{ answer_url }}">{{ answer.answer_file }}</a>{% else %}<p
+                            data-state="no-file"
+                            aria-label="No file provided"
+                        >
+                        </p>{% endif %}
                 {% else %}
                     {% with value=answer.answer_string|default_if_none:answer.answer %}
                         {% if value %}
@@ -18,7 +20,7 @@
                                 {{ value|rich_text_abslinks }}
                             {% endif %}
                         {% else %}
-                            {% translate "No response" %}
+                            <p data-state="no-response" aria-label="No response"></p>
                         {% endif %}
                     {% endwith %}
                 {% endif %}

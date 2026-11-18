@@ -51,7 +51,7 @@ def test_session_and_speaker_images_are_local(image_uploads, event):
         assert files[path] == contents
         assert "../" + quote(path) in HTMLReferences(html).references
     assertInHTML(
-        f'<a href="../{quote("media/" + uploads["session"].name)}"><img src="../{quote("media/" + uploads["session"].name)}" alt="This session’s header image"></a>',
+        f'<a data-field="image" href="../{quote("media/" + uploads["session"].name)}"><img src="../{quote("media/" + uploads["session"].name)}" alt="This session’s header image"></a>',
         html,
     )
 

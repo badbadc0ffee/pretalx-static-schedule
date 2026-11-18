@@ -1,0 +1,29 @@
+<article {% for name, value in speaker.attributes.items %} {{ name }}="{{ value }}"{% endfor %}>
+    <h{{ heading_level }}>{% if speaker.view == "summary" %}<a
+                href="{{ speaker.url }}"
+            >{{ speaker.name }}</a>{% else %}{{ speaker.name }}{% endif %}</h{{ heading_level }}>
+    {% include "pretalx_static_schedule/speaker_info.html" %}
+    {% if speaker.presentations %}
+        <ol data-rel="sessions" aria-label="Presentations">
+            {% for session in speaker.presentations %}
+                <li
+                    {% if speaker.relationship_mode == "references" %}
+                        {% for name, value in session.attributes.items %}
+                            {% if name != "data-kind" %} {{ name }}="{{ value }}"{% endif %}
+                        {% endfor %}
+                    {% endif %}
+                >
+                    {% if speaker.relationship_mode == "summaries" %}
+                        {% include "pretalx_static_schedule/session_summary.html" with heading_level=heading_level|add:"1" %}
+                    {% else %}
+                        <a
+                            {% if session.language %}lang="{{ session.language }}"{% endif %}
+                            href="{{ session.url }}"
+                        >{{ session.title }}</a>
+                        {% include "pretalx_static_schedule/occurrence.html" with occurrence=session.occurrence %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+</article>

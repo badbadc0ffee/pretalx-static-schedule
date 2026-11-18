@@ -1,5 +1,15 @@
-
+{% load static_schedule %}
 :root {
-    --color-primary: {{ event.visible_primary_color }};
+    --color-primary: {{ event.visible_primary_color|css_color }};
     {% if event.primary_color_needs_dark_text %}--color-text-on-primary: var(--color-text);{% endif %}
 }
+{% for track in tracks %}
+[data-track="{{ track.pk }}"] {
+    --track-color: {{ track.color|css_color }};
+}
+{% endfor %}
+{% for tag in tags %}
+[data-tag="{{ tag.pk }}"] {
+    background-color: {{ tag.color|css_color }};
+}
+{% endfor %}

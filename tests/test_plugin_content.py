@@ -33,9 +33,9 @@ def test_public_session_notes_are_exported(published_talk_slot, event):
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     assertInHTML("<p><strong>Before the session</strong></p>", html)
     assertInHTML("<p><strong>After the session</strong></p>", html)
-    assert html.index("Before the session") < html.index("<h1>")
-    assert html.index("After the session") > html.index('class="description"')
-    assert html.index("After the session") < html.index('class="speaker"')
+    assert html.index("Before the session") < html.index("<h1")
+    assert html.index("After the session") > html.index('data-field="description"')
+    assert html.index("After the session") < html.index('data-kind="speaker"')
     assert "Before the session" not in files["index.html"].decode("utf-8")
 
 
@@ -457,7 +457,7 @@ def test_repeated_published_sessions_call_each_hook_once(
         (html_below_session_pages, "TOOLS01", "2.0"),
     ]
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert len(page.select(".session-times > li")) == 2
+    assert len(page.select('[data-rel="occurrences"] > li')) == 2
     assert len(page.find_all("p", string="Current session information.")) == 2
 
 

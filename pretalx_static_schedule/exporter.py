@@ -74,7 +74,16 @@ class StaticScheduleExporter(BaseExporter):
                 finders.find("common/css/_variables.css")
             ).read_bytes()
             + render_to_string(
-                "pretalx_static_schedule/event_variables.css", {"event": self.event}
+                "pretalx_static_schedule/event_variables.css",
+                {
+                    "event": self.event,
+                    "tracks": data.tracks,
+                    "tags": {
+                        tag.pk: tag
+                        for session in data.sessions.values()
+                        for tag in session["tags"]
+                    }.values(),
+                },
             ).encode("utf-8"),
         }
         context = {

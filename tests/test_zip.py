@@ -60,7 +60,7 @@ def test_render_returns_a_complete_zip(
         (root / "index.html").read_text(encoding="utf-8"),
     )
     detail = (root / "sessions/TOOLS01.html").read_text(encoding="utf-8")
-    assertInHTML("<h1>Building &lt;tools&gt;</h1>", detail)
+    assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', detail)
     assertInHTML(f'<a data-field="event" href="../index.html">{event.name}</a>', detail)
     assert "Room A" in detail
     assert "Ada Example" in detail
@@ -86,7 +86,7 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event, day
         overview = archive.read("index.html").decode("utf-8")
     page = BeautifulSoup(overview, "html.parser")
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
-    assert overview.count("No sessions on") == event.duration
+    assert overview.count('data-state="no-sessions"') == event.duration
 
 
 def test_extracted_zip_includes_images_and_public_files(

@@ -56,25 +56,30 @@ def test_single_talk_is_listed_in_the_speaker_overview_and_omitted_on_the_talk_p
     page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
     for name in ("sessions/TOOLS01.html", "speakers/index.html"):
         section = BeautifulSoup(files[name], "html.parser").find(
-            id=f"speaker-{speaker.code}"
+            "article", attrs={"data-speaker": speaker.code}
         )
         assert section.find("h2").get_text(strip=True) == "Ada Example"
         assertInHTML("<p>Builds <strong>small tools</strong>.</p>", str(section))
         if name == "sessions/TOOLS01.html":
-            assert section.select_one(".speaker-sessions") is None
+            assert section.select_one('[data-rel="sessions"]') is None
             assert section.find("h3") is None
         else:
-            appearances = section.select_one(".speaker-sessions")
+            appearances = section.select_one('[data-rel="sessions"]')
             assert appearances is not None
             assert [
-                link["href"] for link in appearances.select("li > a:not(.room)")
+                link["href"]
+                for link in appearances.select(
+                    ":scope > li > a:not([data-room]), :scope > li > article > :is(h2, h3) > a"
+                )
             ] == ["../sessions/TOOLS01.html"] * (2 if repeated else 1)
-            assert section.h3.get_text() == "Sessions"
+            assert not section.find("h3")
         assert "WIP appearance" not in section.get_text()
-    assert len(page.select(".session-times > li")) == (2 if repeated else 1)
+    assert len(page.select('[data-rel="occurrences"] > li')) == (2 if repeated else 1)
     assert "sessions/WIP001.html" not in files
     speaker_page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
-    cards = speaker_page.select(".speaker-sessions .session")
+    cards = speaker_page.select(
+        '[data-rel="sessions"] article:is([data-kind="session"], [data-kind="break"])'
+    )
     assert len(cards) == (2 if repeated else 1)
     assert [card.find("a")["href"] for card in cards] == [
         "../sessions/TOOLS01.html"
@@ -107,7 +112,9 @@ def test_public_speaker_answers(published_talk_slot, event, page):
         files = StaticScheduleExporter(event).get_files()
 
     html = files[page].decode("utf-8")
-    section = BeautifulSoup(html, "html.parser").select_one(".speaker")
+    section = BeautifulSoup(html, "html.parser").select_one(
+        'article[data-kind="speaker"]'
+    )
     assertInHTML("<dt>Experience</dt>", str(section))
     assertInHTML("<dd><p>Builds <strong>small tools</strong>.</p></dd>", str(section))
     assert section.find("a", href="https://example.org/profile")
@@ -149,14 +156,14 @@ def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, p
         archive.extractall(tmp_path)
         assert f"media/{answers[2].answer_file.name}" not in archive.namelist()
     section = BeautifulSoup((tmp_path / page).read_text(), "html.parser").select_one(
-        ".speaker"
+        'article[data-kind="speaker"]'
     )
     document = answers[0].answer_file
     assertInHTML(
         f'<a href="../media/{quote(document.name)}">{document}</a>', str(section)
     )
     assert (tmp_path / f"media/{document.name}").read_bytes() == b"Document"
-    assert "No file provided" in section.get_text()
+    assert section.select_one('[data-state="no-file"]')
     assert "Private document" not in section.get_text()
     image = section.find("img")
     assert (tmp_path / f"media/{uploads['avatar'].name}").read_bytes() == image_data
@@ -217,8 +224,12 @@ def test_speaker_links_resolve_to_exported_pages(
         for name, content in files.items()
         if name.endswith(".html")
     }
-    assert pages["sessions/TOOLS01.html"].find(id=f"speaker-{ada.code}")
-    assert pages["sessions/OTHER01.html"].find(id=f"speaker-{bob.code}")
+    assert pages["sessions/TOOLS01.html"].find(
+        "article", attrs={"data-speaker": ada.code}
+    )
+    assert pages["sessions/OTHER01.html"].find(
+        "article", attrs={"data-speaker": bob.code}
+    )
     assert pages["sessions/TOOLS01.html"].find(
         "a", href=f"../speakers/{bob.code}.html", string="Bob's profile"
     )
@@ -315,44 +326,43 @@ def test_all_speaker_appearances_use_current_published_slots(
         ("speakers/index.html", "../sessions/"),
     ):
         page = BeautifulSoup(files[name].decode("utf-8"), "html.parser")
-        section = page.find(id=f"speaker-{speaker.code}")
-        appearances = section.select_one(".speaker-sessions")
+        section = page.find("article", attrs={"data-speaker": speaker.code})
+        appearances = section.select_one('[data-rel="sessions"]')
         assert appearances is not None
         assert [time["datetime"] for time in appearances.find_all("time")][::2] == [
             current_start.isoformat(),
             other_start.isoformat(),
             repeated_start.isoformat(),
         ]
-        assert [link["href"] for link in appearances.select("li > a:not(.room)")] == [
-            prefix + "TOOLS01.html",
-            prefix + "OTHER01.html",
-            prefix + "TOOLS01.html",
-        ]
+        assert [
+            link["href"]
+            for link in appearances.select(
+                ":scope > li > a:not([data-room]), :scope > li > article > :is(h2, h3) > a"
+            )
+        ] == [prefix + "TOOLS01.html", prefix + "OTHER01.html", prefix + "TOOLS01.html"]
         text = appearances.get_text(" ", strip=True)
-        for value in (
-            "Current room",
-            "Other room",
-            "Repeated room",
-            "45 min",
-            "30 min",
-            "15 min",
-        ):
+        for value in ("Current room", "Other room", "Repeated room"):
             assert value in text
         assert "Room A" not in text
         assert "WIP appearance" not in text
-        assert len(section.select(".speaker-sessions > li")) == 3
+        assert len(section.select('[data-rel="sessions"] > li')) == 3
     overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
     assert [
         section.h2.get_text(strip=True)
-        for section in overview.select(".speaker-list > .speaker")
+        for section in overview.select(
+            'main > [data-rel="speakers"] > li > article[data-kind="speaker"]'
+        )
     ] == ["Ada Example", "Bob Example"]
     bob_appearances = overview.select_one(
-        ".speaker-list > .speaker:last-child .speaker-sessions"
+        'main > [data-rel="speakers"] > li:last-child > article[data-kind="speaker"] [data-rel="sessions"]'
     )
     assert bob_appearances is not None
-    assert [link["href"] for link in bob_appearances.select("li > a:not(.room)")] == [
-        "../sessions/OTHER01.html"
-    ]
+    assert [
+        link["href"]
+        for link in bob_appearances.select(
+            ":scope > li > a:not([data-room]), :scope > li > article > :is(h2, h3) > a"
+        )
+    ] == ["../sessions/OTHER01.html"]
     assert "sessions/WIP001.html" not in files
     assert BeautifulSoup(
         files["sessions/OTHER01.html"].decode("utf-8"), "html.parser"
@@ -360,12 +370,14 @@ def test_all_speaker_appearances_use_current_published_slots(
     bob = (
         BeautifulSoup(files["sessions/OTHER01.html"], "html.parser")
         .find("a", string="Bob Example")
-        .find_parent("section", class_="speaker")
+        .find_parent("article", attrs={"data-kind": "speaker"})
     )
-    assert bob.select_one(".speaker-sessions") is None
+    assert bob.select_one('[data-rel="sessions"]') is None
     assert bob.find("h3") is None
     speaker_page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
-    cards = speaker_page.select(".speaker-sessions .session")
+    cards = speaker_page.select(
+        '[data-rel="sessions"] article:is([data-kind="session"], [data-kind="break"])'
+    )
     assert len(cards) == 3
     assert [card.find("a")["href"] for card in cards] == [
         "../sessions/TOOLS01.html",
@@ -379,9 +391,11 @@ def test_all_speaker_appearances_use_current_published_slots(
         (45, 30, 15),
         strict=True,
     ):
-        assert card.find("time", attrs={"datetime": start.date().isoformat()})
+        assert card["data-day"] == start.date().isoformat()
         assert card.find("time", attrs={"datetime": start.isoformat()})
         assert room in card.get_text()
-        assert f"{duration} min" in card.get_text(" ", strip=True)
+        assert (
+            card.select_one('[data-field="duration"] data')["value"] == f"PT{duration}M"
+        )
     assert all("Room A" not in card.get_text() for card in cards)
     assert "WIP appearance" not in speaker_page.get_text()
