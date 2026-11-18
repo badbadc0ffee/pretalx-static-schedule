@@ -84,7 +84,10 @@ def test_session_detail(published_talk_slot, event):
         )
 
     assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', html)
-    assertInHTML('<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>', html)
+    assertInHTML(
+        '<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>',
+        html,
+    )
     assertInHTML(
         f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
         html,

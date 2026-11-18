@@ -273,11 +273,7 @@ def test_extracted_site_contains_the_public_page_information(
         assert photo["src"] == "../" + quote(f"media/{uploads['avatar'].name}")
         assert photo.parent["href"] == photo["src"]
         assert (tmp_path / "media" / uploads["avatar"].name).read_bytes() == image_data
-        for label in (
-            "speaker experience",
-            "speaker format",
-            "Workshop",
-        ):
+        for label in ("speaker experience", "speaker format", "Workshop"):
             assert label in text(online_speaker)
             assert label in text(page)
         experience = page.find("dt", string="speaker experience").find_next_sibling(

@@ -36,6 +36,7 @@ ZIP contents
 * ``assets/schedule.css``: stylesheet.
 * ``assets/variables.css``: pretalx CSS variables with event, track and public-tag color rules.
 * ``assets/fonts/``: local Jersey 10 and Hack fonts with their license files.
+* ``assets/logo.svg``: bundled 40C3 logo.
 * ``media/``: uploaded images and public files, when present.
 
 Speaker pages include the biography, public photo, public answers and files,
@@ -44,15 +45,18 @@ The speaker overview lists each speaker in the current published schedule
 once, sorted by their full displayed name without regard to case. Each name
 links to the speaker's page. Speakers with identical names have separate
 entries. Each entry uses the same speaker summary as the session pages,
-including the public photo, biography, answers and files. The speaker overview
+including the public photo, biography and textual public answers. Public files
+appear only on the speaker's own detail page. The speaker overview
 lists all of each speaker's published sessions, including speakers with just
 one session. On session pages, the speaker's session list appears only when
 they have more than one distinct session in the published schedule. Repeated
 occurrences of the same session count as one session.
 Schedules without speakers show an empty overview.
 
-Every page has a shared header with the event logo and title, published
-schedule version and timezone. Header navigation links to all sessions, every
+Every page has a shared header with the bundled ``logo.svg``, published
+schedule version and timezone. The uploaded pretalx logo and visible event name
+are omitted; the optional event banner is retained. Browser titles still include
+the event name. Header navigation links to all sessions, every
 day, all speakers, every track and every room, in that order. It includes empty
 days, tracks and rooms; empty track and room groups are omitted. The current
 page's link is highlighted and remains usable. A footer identifies the exporter
@@ -71,11 +75,15 @@ grouped by schedule day. Empty rooms have an empty page. Rooms appear in their
 configured order. Room names on session cards and detail pages link to their
 room overview. Room filenames use IDs, so renaming a room does not change its URL.
 
-Every session summary contains the title, image when present, abstract, scheduled
+Every session summary contains the title, abstract, scheduled
 date and times, actual duration, room, content language, assigned track and
 public tags. The same component is used on schedule, day, track, room and
 speaker pages. Session details add the full description, every scheduled
-occurrence, public answers, files, recordings and plugin content.
+occurrence, image when present, public answers, files, recordings and plugin content.
+Summary boxes contain no uploaded graphics or resources except speaker avatars.
+On detail pages, session images and speaker avatars are larger. Session prose
+wraps around the image; speaker biographies wrap around their avatars in both
+summaries and details.
 If a published slot has no end time, pretalx derives it from the submission's
 planned duration or the submission type's default duration.
 
@@ -149,6 +157,7 @@ These paths override the default templates:
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
 * ``pretalx_static_schedule/speaker_article.html``: canonical speaker summary and detail structure.
 * ``pretalx_static_schedule/session_article.html``: canonical session summary and detail structure.
+* ``pretalx_static_schedule/session_body.html``: shared abstract and detail-only image and description.
 * ``pretalx_static_schedule/speaker_summary.html``: shared speaker summaries in every context.
 * ``pretalx_static_schedule/session_summary.html``: session cards on overview, track, room and speaker pages.
 * ``pretalx_static_schedule/session_groups.html``: schedule-day groups and chronological session lists.
@@ -207,7 +216,8 @@ template tag to copy an uploaded file and get its relative URL::
 Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
 
 Override ``pretalx_static_schedule/schedule.css`` through Django's static file
-finders to replace the stylesheet. Fonts and their license files can likewise
+finders to replace the stylesheet, or ``pretalx_static_schedule/logo.svg`` to
+replace the bundled logo. Fonts and their license files can likewise
 be overridden under ``pretalx_static_schedule/fonts/``. Semantic ``data-kind`` and ``data-view``
 attributes identify summaries and details; ``data-day``, ``data-room`` and
 ``data-track`` identify occurrences and navigation destinations. Relationship
@@ -222,7 +232,9 @@ position in a list or its surrounding entity. For example::
     }
 
 These context selectors are available for custom styling; the defaults give
-summaries the same appearance everywhere. Generated event CSS defines
+summaries the same appearance everywhere. Session details group their image,
+abstract and description inside ``[data-field="content"]`` so CSS can wrap
+the text around the image. Generated event CSS defines
 ``--track-color`` on ``[data-track="<id>"]`` and ``--tag-color`` and
 ``--tag-text-color`` on public ``[data-tag="<id>"]`` elements. Visible English
 captions use ``::before`` on semantic fields, navigation groups and relationship

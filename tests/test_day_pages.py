@@ -217,7 +217,5 @@ def test_daily_overviews_have_date_titles_and_overview_links(
         )
         assert page.select_one('header [data-field="event"]')["href"] == "../index.html"
         assert page.select_one("section[data-day] h2 a")["href"] == f"../{name}"
-        assert page.select_one('header [data-field="event"]').get_text() == str(
-            event.name
-        )
+        assert page.select_one('header [data-field="event"] img')["alt"] == "40C3"
         assert page.main.h1.time["datetime"] == date.isoformat()

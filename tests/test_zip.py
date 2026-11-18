@@ -60,7 +60,10 @@ def test_render_returns_a_complete_zip(
     )
     detail = (root / "sessions/TOOLS01.html").read_text(encoding="utf-8")
     assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', detail)
-    assertInHTML('<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>', detail)
+    assertInHTML(
+        '<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>',
+        detail,
+    )
     assert "Room A" in detail
     assert "Ada Example" in detail
     assertInHTML(

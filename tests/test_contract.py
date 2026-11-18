@@ -205,6 +205,21 @@ def review_export(
             question=speaker_question,
             answer="# Availability\n\nAvailable after the presentation.",
         )
+        speaker_document = Question.objects.create(
+            event=event,
+            question="Speaker document",
+            target="speaker",
+            variant="file",
+            is_public=True,
+        )
+        Answer.objects.create(
+            speaker=published_speaker,
+            question=speaker_document,
+            answer="",
+            answer_file=SimpleUploadedFile(
+                "speaker-document.txt", b"Public speaker file"
+            ),
+        )
         for label, variant in (
             ("Missing file", "file"),
             ("Unanswered question", "text"),
@@ -381,6 +396,56 @@ def test_representative_export_has_clean_structure_and_complete_local_references
     (tmp_path / "review.zip").write_bytes(review_export["archive"])
     with ZipFile(BytesIO(review_export["archive"])) as archive:
         archive.extractall(tmp_path / "default")
+
+
+def test_summary_media_is_limited_to_avatars_and_downloads_stay_on_details(
+    review_export,
+):
+    pages = {
+        name: BeautifulSoup(content, "html.parser")
+        for name, content in review_export["files"].items()
+        if name.endswith(".html")
+    }
+    summary_contexts = set()
+    for page in pages.values():
+        for summary in page.select('article[data-view="summary"]'):
+            summary_contexts.add((page.main["data-page"], summary["data-kind"]))
+            assert not summary.select(
+                '[data-rel="files"], [data-field="recording"], [data-state="no-file"]'
+            )
+            assert not summary.find("dt", string="Speaker document")
+            if summary["data-kind"] == "session":
+                assert not summary.find("img")
+                assert not summary.select(
+                    '[data-field="image"], [data-field="public-answers"]'
+                )
+            elif summary["data-speaker"] == "ADA0001":
+                assert len(summary.find_all("img")) == 1
+                assert summary.select_one(':scope > [data-field="image"] img')
+                assert summary.find("dt", string="Speaker notes")
+    assert summary_contexts == {
+        ("sessions", "session"),
+        ("day", "session"),
+        ("track", "session"),
+        ("room", "session"),
+        ("speaker", "session"),
+        ("session", "speaker"),
+        ("speakers", "speaker"),
+    }
+    session = pages["sessions/TOOLS01.html"].main.article
+    body = session.select_one(':scope > [data-field="content"]')
+    assert body.select_one(':scope > [data-field="image"] img')
+    assert body.select_one(':scope > [data-field="abstract"]')
+    assert body.select_one(':scope > [data-field="description"]')
+    assert (
+        session.select_one(':scope > [data-rel="files"] a').get_text()
+        == "Public handout"
+    )
+    assert session.select_one(
+        ':scope > [data-field="public-answers"] [data-state="no-file"]'
+    )
+    speaker = pages["speakers/ADA0001.html"].main.article
+    assert speaker.find("dt", string="Speaker document").find_next_sibling("dd").a
 
 
 def test_custom_stylesheet_selects_days_tracks_rooms_nesting_and_order(

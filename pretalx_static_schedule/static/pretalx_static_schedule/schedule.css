@@ -814,7 +814,7 @@ article[data-view="detail"] > :is([data-field="abstract"], [data-field="descript
 }
 article[data-kind="session"][data-view="detail"] > [data-rel="speakers"] { margin-top: 0.5rem; }
 
-/* Avatar-sized images retain their original links and never upscale. */
+/* Avatar-sized images retain their original links. */
 article[data-kind="speaker"] > [data-field="image"] {
     float: left;
     width: fit-content;
@@ -2040,10 +2040,13 @@ article[data-kind="speaker"][data-view="summary"] > [data-field="biography"] {
 }
 
 article[data-kind="speaker"][data-view="detail"] > [data-field="image"] img {
+    width: 100%;
     max-height: 10rem;
+    object-fit: contain;
 }
 
 article[data-kind="speaker"][data-view="detail"] > [data-field="image"] {
+    width: 10rem;
     max-width: min(10rem, 40%);
 }
 

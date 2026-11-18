@@ -32,7 +32,9 @@ class HTMLReferences(HTMLParser):
         )
 
 
-def test_bundled_logo_replaces_the_uploaded_logo_and_banner_stays_local(image_uploads, event):
+def test_bundled_logo_replaces_the_uploaded_logo_and_banner_stays_local(
+    image_uploads, event
+):
     uploads, contents = image_uploads
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
@@ -106,13 +108,15 @@ def test_local_stylesheet(published_talk_slot, event):
         )
 
 
-def test_bundled_fonts_and_licenses_are_exported_and_honor_static_overrides(
+def test_bundled_logo_fonts_and_licenses_are_exported_and_honor_static_overrides(
     published_talk_slot, event, stylesheet_files, settings, tmp_path
 ):
     static_root = tmp_path / "static"
     custom_font = static_root / "pretalx_static_schedule/fonts/Hack-Regular.woff2"
     custom_font.parent.mkdir(parents=True)
     custom_font.write_bytes(b"Custom font override")
+    custom_logo = static_root / "pretalx_static_schedule/logo.svg"
+    custom_logo.write_bytes(b'<svg xmlns="http://www.w3.org/2000/svg"/>')
     settings.STATICFILES_DIRS = [static_root, *settings.STATICFILES_DIRS]
     with scope(event=event):
         _, _, data = StaticScheduleExporter(event).render(request=None)
@@ -128,6 +132,7 @@ def test_bundled_fonts_and_licenses_are_exported_and_honor_static_overrides(
     assert (
         tmp_path / "site/assets/fonts/Hack-Regular.woff2"
     ).read_bytes() == b"Custom font override"
+    assert (tmp_path / "site/assets/logo.svg").read_bytes() == custom_logo.read_bytes()
 
 
 def test_public_downloads_are_local(published_talk_slot, event):
