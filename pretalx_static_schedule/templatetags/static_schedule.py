@@ -20,22 +20,63 @@ from django.utils.translation import gettext_lazy as _
 
 from pretalx.common.templatetags.html_signal import html_signal
 from pretalx.common.templatetags.rich_text import (
-    ALLOWED_ATTRIBUTES,
     ALLOWED_PROTOCOLS,
     ALLOWED_TAGS,
+    render_markdown_abslinks,
 )
+from pretalx.common.ui import has_good_contrast
 from pretalx.common.urls import get_base_url
 
 register = template.Library()
 
 
 @register.filter
-def css_color(value):
+def css_color(value, fallback="var(--color-primary)"):
     return (
         value
         if re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})", value or "")
-        else "var(--color-primary)"
+        else fallback
     )
+
+
+@register.filter
+def css_text_color(value, fallback="#3aa57c"):
+    color = css_color(value, css_color(fallback, "#3aa57c")).lstrip("#")
+    if len(color) == 3:
+        color = "".join(channel * 2 for channel in color)
+    return (
+        "var(--color-white)" if has_good_contrast(f"#{color}") else "var(--color-text)"
+    )
+
+
+def normalize_headings(soup, heading_level):
+    hierarchy = []
+    for heading in soup.find_all(re.compile(r"^h[1-6]$")):
+        level = int(heading.name[1])
+        while hierarchy and hierarchy[-1] >= level:
+            hierarchy.pop()
+        hierarchy.append(level)
+        heading.name = f"h{min(6, int(heading_level) + len(hierarchy))}"
+
+
+@register.filter
+def schedule_text(value, heading_level=1):
+    soup = BeautifulSoup(
+        clean(
+            render_markdown_abslinks(value),
+            tags=ALLOWED_TAGS,
+            attributes={
+                "a": ["href", "title", "rel", "target"],
+                "abbr": ["title"],
+                "acronym": ["title"],
+            },
+            protocols=ALLOWED_PROTOCOLS,
+            strip=True,
+        ),
+        "html.parser",
+    )
+    normalize_headings(soup, heading_level)
+    return mark_safe(str(soup))  # noqa: S308 -- bleach removes active HTML and presentation attributes.
 
 
 @register.simple_tag(takes_context=True)
@@ -94,6 +135,23 @@ def session_content(context, signal_name):
         "script, style, form, button, input, select, textarea, iframe, object, embed, [hidden]"
     ):
         element.decompose()
+    normalize_headings(soup, context.get("heading_level", 1))
+    position = (
+        signal_name.rsplit(".", 1)[-1]
+        .removeprefix("html_")
+        .removesuffix("_session_pages")
+    )
+    anchors = {}
+    for index, element in enumerate(soup.select("[id]"), start=1):
+        identity = f"{submission.code}-{position}-{index}"
+        anchors.setdefault(element["id"], identity)
+        element["id"] = identity
+    for link in soup.select('a[href^="#"]'):
+        target = unquote(link["href"][1:])
+        if target in anchors:
+            link["href"] = f"#{anchors[target]}"
+        else:
+            link["href"] = urljoin(submission.urls.public.full(), link["href"])
     media_url = urlsplit(urljoin(get_base_url(request.event), default_storage.url("")))
     static_url = urlsplit(urljoin(get_base_url(request.event), settings.STATIC_URL))
     for image in soup.select("img[src]"):
@@ -159,8 +217,13 @@ def session_content(context, signal_name):
         clean(
             str(soup),
             tags=ALLOWED_TAGS | {"section", "dl", "dt", "dd", "img"},
-            attributes=ALLOWED_ATTRIBUTES
-            | {"*": ["id"], "img": ["src", "alt", "title"]},
+            attributes={
+                "*": ["id"],
+                "a": ["href", "title"],
+                "abbr": ["title"],
+                "acronym": ["title"],
+                "img": ["src", "alt", "title"],
+            },
             protocols=ALLOWED_PROTOCOLS,
             strip=True,
         )

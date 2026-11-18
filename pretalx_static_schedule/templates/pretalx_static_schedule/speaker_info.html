@@ -1,8 +1,10 @@
-{% load rich_text static_schedule %}
+{% load static_schedule %}
 {% local_asset speaker.image as image_url %}
 {% if image_url %}<a data-field="image" href="{{ image_url }}"><img
             src="{{ image_url }}"
             alt="{{ speaker.name }}"
         ></a>{% endif %}
-{% if speaker.biography %}<div data-field="biography">{{ speaker.biography|rich_text_abslinks }}</div>{% endif %}
+{% if speaker.biography %}<div data-field="biography">
+        {{ speaker.biography|schedule_text:heading_level }}
+    </div>{% endif %}
 {% include "pretalx_static_schedule/answers.html" with answers=speaker.answers %}

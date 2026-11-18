@@ -33,7 +33,11 @@ def test_public_session_notes_are_exported(published_talk_slot, event):
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     assertInHTML("<p><strong>Before the session</strong></p>", html)
     assertInHTML("<p><strong>After the session</strong></p>", html)
-    assert html.index("Before the session") < html.index("<h1")
+    assert (
+        html.index("<h1")
+        < html.index("Before the session")
+        < html.index('data-field="abstract"')
+    )
     assert html.index("After the session") > html.index('data-field="description"')
     assert html.index("After the session") < html.index('data-kind="speaker"')
     assert "Before the session" not in files["index.html"].decode("utf-8")
@@ -71,11 +75,12 @@ def test_session_hooks_receive_an_anonymous_public_request(
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert len(page.select(".plugin-note")) == 2
-    assert all(
-        note.find("strong").get_text() == "plugin information"
-        for note in page.select(".plugin-note")
-    )
+    notes = [
+        note for note in page.find_all("p") if "plugin information" in note.get_text()
+    ]
+    assert len(notes) == 2
+    assert all(note.find("strong").get_text() == "plugin information" for note in notes)
+    assert not page.select("[class]")
 
 
 def test_empty_session_hooks_add_no_content(
@@ -99,9 +104,10 @@ def test_plugin_information_keeps_formatting_and_removes_interactions(
     def handler(signal, sender, **kwargs):
         return (
             '<section id="plugin-info"><h2>Equipment</h2>'
-            '<p onclick="loadEquipment()">Bring a <strong>laptop</strong>.</p>'
+            '<p class="note" style="color: red" onclick="loadEquipment()">Bring a <strong>laptop</strong>.</p>'
             "<ul><li>Power outlets</li><li>Wi-Fi</li></ul>"
-            "<table><tbody><tr><th>Capacity</th><td>40</td></tr></tbody></table>"
+            '<table width="800" bgcolor="red"><tbody><tr><th>Capacity</th><td width="400" align="right">40</td></tr></tbody></table>'
+            '<pre><code>&lt;div style="color: red"&gt;Example&lt;/div&gt;</code></pre>'
             '<a href="https://example.org/handout" onmouseover="track()">Handout</a>'
             '<script src="/static/plugin.js">loadSecret()</script>'
             "<style>.plugin-info {display: none}</style>"
@@ -119,15 +125,17 @@ def test_plugin_information_keeps_formatting_and_removes_interactions(
 
     html = files["sessions/TOOLS01.html"].decode("utf-8")
     page = BeautifulSoup(html, "html.parser")
-    section = page.find(id="plugin-info")
+    section = page.find(id="TOOLS01-above-1")
     assertInHTML("<h2>Equipment</h2>", str(section))
     assertInHTML("<p>Bring a <strong>laptop</strong>.</p>", str(section))
     assertInHTML("<ul><li>Power outlets</li><li>Wi-Fi</li></ul>", str(section))
     assert section.find("th").get_text() == "Capacity"
     assert section.find("td").get_text() == "40"
+    assert section.code.get_text() == '<div style="color: red">Example</div>'
     assert section.find("a", href="https://example.org/handout").get_text() == "Handout"
     assert not section.find(["script", "style", "form", "input", "button", "iframe"])
     assert not page.find(["script", "form", "input", "button", "iframe"])
+    assert not page.select("[style], [class], [width], [align], [bgcolor]")
     assert not any(
         name.startswith("on") for tag in page.find_all(True) for name in tag.attrs
     )
@@ -179,7 +187,7 @@ def test_plugin_links_are_static_and_preserve_external_information(
         ("Schedule", "../index.html"),
         ("Session", "TOOLS01.html"),
         ("Speaker", f"../speakers/{speaker.code}.html"),
-        ("Equipment details", "#plugin-details"),
+        ("Equipment details", "#TOOLS01-below-1"),
         (
             "Other public document",
             urljoin(submission.urls.public.full(), "../../../handouts/document.pdf"),
@@ -190,7 +198,7 @@ def test_plugin_links_are_static_and_preserve_external_information(
         ("External redirect", "https://external.example.org/redirect/?url=123"),
     ):
         assert page.find("a", string=label)["href"] == target
-    assert page.find(id="plugin-details").get_text() == "Equipment is provided."
+    assert page.find(id="TOOLS01-below-1").get_text() == "Equipment is provided."
 
 
 def test_plugin_links_omit_online_actions(
@@ -284,7 +292,7 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
     page = BeautifulSoup(
         (extracted / "sessions/TOOLS01.html").read_text(), "html.parser"
     )
-    section = page.find(id="plugin-images")
+    section = page.find(id="TOOLS01-above-1")
     assert section.find("img", alt="Equipment photo")["src"] == "../" + quote(
         f"media/{uploads['session'].name}"
     )
@@ -395,7 +403,7 @@ def test_only_enabled_plugins_add_session_information(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"].decode("utf-8"), "html.parser")
-    assert bool(page.find(id="plugin-enabled")) == enabled
+    assert bool(page.find(id="TOOLS01-above-1")) == enabled
 
 
 def test_archived_and_wip_only_sessions_do_not_call_content_hooks(

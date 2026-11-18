@@ -298,7 +298,7 @@ def test_extracted_site_contains_the_public_page_information(
     assert "Language:" in text(online_session)
     assert "English" in text(session)
     assert text(online_session.find(id="plugin-notice")) == text(
-        session.find(id="plugin-notice")
+        session.find(id="TOOLS01-below-1")
     )
     for label in (
         "Public session notice.",

@@ -85,6 +85,17 @@ entity. Root overview and detail lists include single entries.
 
 Pages use the event's primary color. Session cards and track labels use the
 assigned track color. Public tags appear as badges with their assigned colors.
+Navigation and tag text use a contrasting foreground; links use darker shades
+of the event or track color. Invalid track and tag colors use the event color;
+an invalid event color uses pretalx's default.
+
+All layout, colors and visible interface captions are supplied by the external
+stylesheets. Default templates, rendered rich text and plugin fragments contain
+no inline styles or presentation attributes. English accessible names remain
+in the HTML. Session and speaker summaries use the same typography, spacing
+and field styling on every page, independent of heading depth or surrounding
+entity. The stylesheet supports narrow screens and print; printing omits the
+navigation and banner while retaining the event identity and schedule metadata.
 
 Session pages include recording information from enabled recording providers.
 Recording descriptions and labels are kept as text. Links in provider HTML,
@@ -94,6 +105,12 @@ Session pages also include public notes and content from enabled plugins above
 and below the session details. Text, basic formatting, tables and links are
 kept. Interactive widgets and online actions are removed. Local images are
 copied into the archive. Remote images become links to their original location.
+Presentation classes, table widths and alignment are removed. Literal HTML
+and CSS examples in escaped prose or code remain content.
+Authored headings follow their containing article's heading depth, with skipped
+ranks compressed and a maximum rank of ``h6``. Plugin anchor IDs are unique
+within each document. Links to anchors in the same fragment are rewritten;
+anchors outside that fragment continue to point to the source session page.
 
 Extract the ZIP into a web server directory. Keep its directory structure.
 For example, if the server's document root is ``/var/www/html/``::
@@ -179,6 +196,29 @@ template tag to copy an uploaded file and get its relative URL::
     {% if image_url %}<img src="{{ image_url }}" alt="Session image">{% endif %}
 
 Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
+
+Override ``pretalx_static_schedule/schedule.css`` through Django's static file
+finders to replace the stylesheet. Semantic ``data-kind`` and ``data-view``
+attributes identify summaries and details; ``data-day``, ``data-room`` and
+``data-track`` identify occurrences and navigation destinations. Relationship
+lists use ``data-rel``. You can style a summary by its own attributes, its
+position in a list or its surrounding entity. For example::
+
+    article[data-kind="session"][data-view="summary"][data-room="1"] {
+        border-inline-end: 0.3rem solid navy;
+    }
+    article[data-kind="session"][data-view="detail"] > [data-rel="speakers"] > li > article {
+        background-color: aliceblue;
+    }
+
+These context selectors are available for custom styling; the defaults give
+summaries the same appearance everywhere. Generated event CSS defines
+``--track-color`` on ``[data-track="<id>"]`` and ``--tag-color`` and
+``--tag-text-color`` on public ``[data-tag="<id>"]`` elements. Visible English
+captions use ``::before`` on semantic fields, navigation groups and relationship
+lists. Render authored prose in custom templates with the ``schedule_text``
+filter from ``static_schedule`` to preserve formatting while removing
+presentation attributes.
 
 The recording template receives ``recording.text`` and ``recording.links``.
 Each link has ``url`` and ``label`` fields. Recording URLs point to their

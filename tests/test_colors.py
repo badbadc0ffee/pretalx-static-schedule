@@ -54,8 +54,20 @@ def test_original_variables_stylesheet_is_exported_with_event_overrides(
         ]
 
 
-@pytest.mark.parametrize("color", ("", "#123456", "#ffffcc"))
-def test_pages_use_the_event_color(published_talk_slot, event, color, settings, client):
+@pytest.mark.parametrize(
+    ("color", "foreground"),
+    (
+        ("", "var(--color-text)"),
+        ("#123456", "var(--color-white)"),
+        ("#ffffcc", "var(--color-text)"),
+        ("#fff", "var(--color-text)"),
+        ("#123", "var(--color-white)"),
+        ("#777777", "var(--color-text)"),
+    ),
+)
+def test_pages_use_the_event_color(
+    published_talk_slot, event, color, foreground, settings, client
+):
     with scope(event=event):
         event.primary_color = color
         event.save(update_fields=["primary_color"])
@@ -72,12 +84,10 @@ def test_pages_use_the_event_color(published_talk_slot, event, color, settings, 
     assert definitions["--color-primary"] == (
         color or settings.DEFAULT_EVENT_PRIMARY_COLOR
     )
-    for variable, value in original.items():
-        assert definitions[variable] == value
-    if color == "#ffffcc":
-        assert definitions["--color-text-on-primary"] == "var(--color-text)"
-    else:
-        assert "--color-text-on-primary" not in definitions
+    assert definitions["--color-primary"] == original.get(
+        "--color-primary", settings.DEFAULT_EVENT_PRIMARY_COLOR
+    )
+    assert definitions["--color-text-on-primary"] == foreground
     for name in (
         "index.html",
         "sessions/TOOLS01.html",
@@ -137,7 +147,7 @@ def test_session_cards_and_details_use_the_assigned_track_color(
             assert article.select_one('[data-field="track"]') is None
     css = files["assets/schedule.css"].decode()
     assert "border-inline-start: 0.3rem solid var(--track-color);" in css
-    assert '[data-field="track"] {\n    color: var(--track-color);\n}' in css
+    assert "text-decoration-color: var(--track-color);" in css
 
 
 def test_breaks_use_a_neutral_color(published_talk_slot, event):
@@ -206,7 +216,51 @@ def test_public_tags_use_their_configured_colors(
     assert "#abc456" not in variables
     for tag in tags[:2]:
         assert (
-            f'[data-tag="{tag.pk}"] {{\n    background-color: {tag.color};' in variables
+            f'[data-tag="{tag.pk}"] {{\n    --tag-color: {tag.color};' in variables
         ) is has_public_tags
     assert "[data-tag] {" in css
-    assert "color: var(--color-white);" in css
+    assert "color: var(--tag-text-color);" in css
+
+
+@pytest.mark.parametrize(
+    "color", ("invalid", "#12", "#123456; } body { display:none }")
+)
+def test_invalid_event_color_uses_the_default_without_a_variable_cycle(
+    published_talk_slot, event, color
+):
+    with scope(event=event):
+        event.primary_color = color
+        event.save(update_fields=["primary_color"])
+        css = StaticScheduleExporter(event).get_files()["assets/variables.css"].decode()
+    assert color not in css
+    assert "--color-primary: var(--color-pretalx);" in css
+    assert "--color-primary: var(--color-primary);" not in css
+    assert "--color-text-on-primary: var(--color-text);" in css
+
+
+@pytest.mark.parametrize(
+    ("tag_color", "primary", "foreground"),
+    (
+        ("#fff", "#123456", "var(--color-text)"),
+        ("#123", "#ffffcc", "var(--color-white)"),
+        ("", "#ffffcc", "var(--color-text)"),
+        ("invalid", "#123456", "var(--color-white)"),
+        ("", "invalid", "var(--color-text)"),
+    ),
+)
+def test_public_tag_text_uses_a_contrasting_color(
+    published_talk_slot, event, tag_color, primary, foreground
+):
+    with scope(event=event):
+        event.primary_color = primary
+        event.save(update_fields=["primary_color"])
+        tag = Tag.objects.create(
+            event=event, tag="Colored tag", color=tag_color, is_public=True
+        )
+        published_talk_slot.submission.tags.add(tag)
+        css = StaticScheduleExporter(event).get_files()["assets/variables.css"].decode()
+    color = tag_color if tag_color.startswith("#") else "var(--color-primary)"
+    assert (
+        f'[data-tag="{tag.pk}"] {{\n    --tag-color: {color};\n'
+        f"    --tag-text-color: {foreground};" in css
+    )

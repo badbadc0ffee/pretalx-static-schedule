@@ -1,9 +1,9 @@
 {% extends "pretalx_static_schedule/base.html" %}
-{% load rich_text %}
+{% load static_schedule %}
 {% block content %}
     <h1>{{ page.title }}</h1>
     {% if page.room.description %}<div data-field="description">
-            {{ page.room.description|rich_text_abslinks }}
+            {{ page.room.description|schedule_text }}
         </div>{% endif %}
     {% include "pretalx_static_schedule/session_groups.html" %}
 {% endblock %}

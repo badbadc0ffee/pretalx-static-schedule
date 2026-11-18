@@ -1,4 +1,4 @@
-{% load rich_text static_schedule %}
+{% load static_schedule %}
 {% if answers %}
     <dl data-field="public-answers">
         {% for answer in answers %}
@@ -17,7 +17,7 @@
                             {% if answer.question.variant == "choices" or answer.question.variant == "multiple_choice" %}
                                 {{ value }}
                             {% else %}
-                                {{ value|rich_text_abslinks }}
+                                {% with content_level=heading_level|default:1 %}{{ value|schedule_text:content_level }}{% endwith %}
                             {% endif %}
                         {% else %}
                             <p data-state="no-response" aria-label="No response"></p>

@@ -9,7 +9,13 @@ from django_scopes import scope
 from pretalx.person.models import SpeakerProfile
 from pretalx.schedule.domain.release import freeze_schedule
 from pretalx.schedule.models import Room, TalkSlot
-from pretalx.submission.models import Submission, SubmissionStates, Tag
+from pretalx.submission.models import (
+    Answer,
+    Question,
+    Submission,
+    SubmissionStates,
+    Tag,
+)
 
 from pretalx_static_schedule.exporter import StaticScheduleExporter
 
@@ -250,6 +256,60 @@ def test_invalid_color_data_cannot_add_css_rules(published_talk_slot, event):
     assert (
         f'[data-track="{track.pk}"] {{\n    --track-color: var(--color-primary);' in css
     )
-    assert (
-        f'[data-tag="{tag.pk}"] {{\n    background-color: var(--color-primary);' in css
+    assert f'[data-tag="{tag.pk}"] {{\n    --tag-color: var(--color-primary);' in css
+
+
+def test_rich_content_keeps_data_and_code_without_presentation_attributes(
+    published_talk_slot, published_speaker, event
+):
+    prose = (
+        '<div class="styled" style="color: red"><p class="note">Deutscher '
+        '<strong>Inhalt</strong> mit <span class="color">Farbe</span>.</p>'
+        '<table width="900" bgcolor="red"><tr><td width="300" align="right">'
+        'Tabellendaten</td></tr></table><p><a href="https://example.org/content" '
+        'title="Reference">Quelle</a></p></div>\n\n'
+        '```html\n<div style="color: red">Example</div>\n```'
     )
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        submission.abstract = submission.description = prose
+        submission.save(update_fields=["abstract", "description"])
+        published_speaker.biography = prose
+        published_speaker.save(update_fields=["biography"])
+        submission.track.description = prose
+        submission.track.save(update_fields=["description"])
+        published_talk_slot.room.description = prose
+        published_talk_slot.room.save(update_fields=["description"])
+        question = Question.objects.create(
+            event=event, question="Public answer", variant="text", is_public=True
+        )
+        Answer.objects.create(question=question, submission=submission, answer=prose)
+        Answer.objects.create(
+            question=question, speaker=published_speaker, answer=prose
+        )
+        files = StaticScheduleExporter(event).get_files()
+
+    fields_seen = set()
+    for filename, content in files.items():
+        if not filename.endswith(".html"):
+            continue
+        page = BeautifulSoup(content, "html.parser")
+        assert not page.select(
+            "style, [style], [class], [width], [height], [align], [bgcolor]"
+        )
+        for field in page.main.select(
+            '[data-field="abstract"], [data-field="description"], '
+            '[data-field="biography"], [data-field="public-answers"]'
+        ):
+            fields_seen.add(field["data-field"])
+            assert field.strong.get_text() == "Inhalt"
+            assert field.td.get_text() == "Tabellendaten"
+            assert (
+                field.find("a", string="Quelle")["href"]
+                == "https://example.org/content"
+            )
+            assert (
+                field.pre.code.get_text().strip()
+                == '<div style="color: red">Example</div>'
+            )
+    assert fields_seen == {"abstract", "description", "biography", "public-answers"}

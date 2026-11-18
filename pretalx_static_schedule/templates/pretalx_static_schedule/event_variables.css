@@ -1,7 +1,9 @@
 {% load static_schedule %}
 :root {
-    --color-primary: {{ event.visible_primary_color|css_color }};
-    {% if event.primary_color_needs_dark_text %}--color-text-on-primary: var(--color-text);{% endif %}
+    --color-primary: {{ event.visible_primary_color|css_color:"var(--color-pretalx)" }};
+    --color-text-on-primary: {{ event.visible_primary_color|css_text_color }};
+    --color-primary-text: color-mix(in srgb, var(--color-primary), black 55%);
+    --color-primary-text-dark: color-mix(in srgb, var(--color-primary), black 70%);
 }
 {% for track in tracks %}
 [data-track="{{ track.pk }}"] {
@@ -10,6 +12,7 @@
 {% endfor %}
 {% for tag in tags %}
 [data-tag="{{ tag.pk }}"] {
-    background-color: {{ tag.color|css_color }};
+    --tag-color: {{ tag.color|css_color }};
+    --tag-text-color: {{ tag.color|css_text_color:event.visible_primary_color }};
 }
 {% endfor %}
