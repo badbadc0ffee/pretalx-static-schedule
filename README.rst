@@ -34,7 +34,7 @@ ZIP contents
 * ``speakers/index.html``: alphabetical overview of speakers.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
-* ``assets/variables.css``: the original pretalx CSS variables.
+* ``assets/variables.css``: the original pretalx CSS variables with event color overrides.
 * ``media/``: uploaded images and public files, when present.
 
 Speaker pages include the biography, public photo, public answers and files,
@@ -50,12 +50,12 @@ they have more than one distinct session in the published schedule. Repeated
 occurrences of the same session count as one session.
 Schedules without speakers show an empty overview.
 
-Every page has lists of days, tracks and rooms above its session content.
-The current overview is highlighted; the other entries link to their pages.
-The day list includes an "All days" link to the full overview. Lists include
-empty days, tracks and rooms.
-An "All speakers" link appears alongside these lists on every page and is
-highlighted on the speaker overview.
+Every page has a shared header with the event logo and title, published
+schedule version and timezone. Header navigation links to all sessions, every
+day, all speakers, every track and every room, in that order. It includes empty
+days, tracks and rooms; empty track and room groups are omitted. The current
+page's link is highlighted and remains usable. A footer identifies the exporter
+version and links to the original schedule.
 
 Day headings on the full overview link to the daily pages. Daily pages include
 empty days and link back to the full overview.
@@ -102,7 +102,8 @@ Use standard Django template overrides. Place files in
 These paths override the default templates:
 
 * ``pretalx_static_schedule/base.html``: shared HTML layout.
-* ``pretalx_static_schedule/navigation.html``: shared day, track and room navigation.
+* ``pretalx_static_schedule/navigation.html``: shared navigation for all pages.
+* ``pretalx_static_schedule/event_variables.css``: event color overrides appended to the exported variables stylesheet.
 * ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
@@ -116,9 +117,11 @@ These paths override the default templates:
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
 * ``pretalx_static_schedule/recording.html``: recording information and links.
 
-The page templates extend ``base.html``. They use the ``title``, ``header``,
-``navigation`` and ``content`` blocks. The ``navigation`` block includes the
-shared navigation template. For example, add this to your override of ``schedule.html``::
+The page templates extend ``base.html``. It provides the ``title``, ``header``,
+``navigation``, ``content`` and ``footer`` blocks. The header and footer have
+shared defaults; the ``navigation`` block includes the shared navigation
+template inside the header. The ``title`` block defaults to the page title and
+event name. For example, add this to your override of ``schedule.html``::
 
     {% extends "pretalx_static_schedule/schedule.html" %}
     {% block content %}
@@ -131,6 +134,10 @@ with the current view's prepared data. Page data includes semantic attributes,
 navigation destinations, grouped session occurrences or speaker entries, and
 related summaries or references. Relationship lists omit a sole reference
 back to their parent entity; top-level lists include every published entry.
+Navigation uses ``page.navigation``; the previous ``navigation_days`` variable
+is no longer supplied. The shared shell uses semantic ``data-field``,
+``data-group`` and ``data-page`` attributes. Its visible captions come from
+CSS, with English accessible names in HTML.
 
 The ``speaker_summary.html`` template is shared by session pages and the
 speaker overview. It includes ``speaker_info.html``, which is also used on

@@ -301,7 +301,7 @@ def test_plugin_images_are_included_and_links_work_after_extraction(
             reference = element.get("href", element.get("src"))
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference == "https://example.org"
+                assert reference in {"https://example.org", event.urls.schedule.full()}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(
@@ -425,7 +425,8 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
         "assets/variables.css",
         *day_files,
     }
-    assert "Schedule version 2.0" in files["index.html"].decode("utf-8")
+    page = BeautifulSoup(files["index.html"], "html.parser")
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
 
 
 def test_repeated_published_sessions_call_each_hook_once(

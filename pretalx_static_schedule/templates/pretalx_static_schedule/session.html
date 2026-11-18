@@ -1,9 +1,5 @@
 {% extends "pretalx_static_schedule/base.html" %}
 {% load i18n phrases rich_text static_schedule tz %}
-{% block title %}{{ submission.title }} – {{ event.name }}{% endblock %}
-{% block header %}
-    <a href="../index.html">{{ event.name }}</a>
-{% endblock %}
 {% block content %}
     <article class="session-detail" style="--track-color: {{ submission.track.color|default:'var(--color-primary)' }}">
         {% session_content "pretalx.agenda.signals.html_above_session_pages" %}

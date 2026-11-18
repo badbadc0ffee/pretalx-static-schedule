@@ -224,7 +224,11 @@ def test_local_recording_stays_external_in_any_directory(
             reference = element.get("href", element.get("src"))
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference in {"https://example.org", expected}
+                assert reference in {
+                    "https://example.org",
+                    expected,
+                    event.urls.schedule.full(),
+                }
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

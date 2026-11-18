@@ -3,6 +3,7 @@ from html.parser import HTMLParser
 from urllib.parse import quote, unquote, urljoin, urlsplit
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
@@ -191,7 +192,11 @@ def test_content_links_to_exported_pages_are_relative(
     assert "TOOLS01.html" in refs
     assert refs.count("../index.html") == 4
     assert talk_url not in refs
-    assert overview_url not in refs
+    assert refs.count(event.urls.schedule.full()) == 1
+    assert (
+        overview_url
+        not in HTMLReferences(str(BeautifulSoup(html, "html.parser").main)).references
+    )
     assert nojs_url not in refs
     assert f'href="{talk_url}"' in html
     for label in ("This session", "Session details", "Related session"):
@@ -280,7 +285,7 @@ def test_internal_references_work_in_any_directory(
         for reference in references:
             parsed = urlsplit(reference)
             if parsed.scheme or parsed.netloc:
-                assert reference == "https://example.org"
+                assert reference in {"https://example.org", event.urls.schedule.full()}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

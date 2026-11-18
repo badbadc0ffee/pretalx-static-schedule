@@ -1,76 +1,19 @@
-{% load i18n tz %}
-<div class="schedule-navigation">
-    <nav class="day-navigation" aria-label="{% translate 'Days' %}">
-        <h2>{% translate "Days" %}</h2>
-        <ul>
-            <li>
-                {% if is_overview %}
-                    <strong aria-current="page">{% translate "All days" %}</strong>
-                {% else %}
-                    <a href="{{ asset_prefix }}index.html">{% translate "All days" %}</a>
-                {% endif %}
-            </li>
-            {% timezone event.timezone %}
-                {% for navigation_day in navigation_days %}
+<nav aria-label="Schedule">
+    {% for group in page.navigation %}
+        {% if group.items %}
+            <ul data-group="{{ group.kind }}" aria-label="{{ group.label }}">
+                {% for item in group.items %}
                     <li>
-                        {% if overview_day.filename == navigation_day.filename %}
-                            <strong aria-current="page"><time
-                                    datetime="{{ navigation_day.start|date:'Y-m-d' }}"
-                                >{{ navigation_day.start|date:"DATE_FORMAT" }}</time></strong>
-                        {% else %}
-                            <a href="{{ asset_prefix }}{{ navigation_day.filename }}"><time
-                                    datetime="{{ navigation_day.start|date:'Y-m-d' }}"
-                                >{{ navigation_day.start|date:"DATE_FORMAT" }}</time></a>
-                        {% endif %}
+                        <a
+                            {% for name, value in item.attributes.items %} {{ name }}="{{ value }}"{% endfor %}
+                            href="{{ page.asset_prefix }}{{ item.filename }}"
+                            {% if item.is_current %}aria-current="page"{% endif %}
+                        >{% if item.date %}<time
+                                    datetime="{{ item.date }}"
+                                >{{ item.label }}</time>{% else %}{{ item.label }}{% endif %}</a>
                     </li>
                 {% endfor %}
-            {% endtimezone %}
-        </ul>
-    </nav>
-    <nav class="track-navigation" aria-label="{% translate 'Tracks' %}">
-        <h2>{% translate "Tracks" %}</h2>
-        <ul>
-            {% for navigation_track in tracks %}
-                <li>
-                    {% if track.pk == navigation_track.pk %}
-                        <strong aria-current="page">{{ navigation_track.name }}</strong>
-                    {% else %}
-                        <a
-                            href="{{ asset_prefix }}tracks/{{ navigation_track.pk }}.html"
-                        >{{ navigation_track.name }}</a>
-                    {% endif %}
-                </li>
-            {% empty %}
-                <li>{% translate "No tracks." %}</li>
-            {% endfor %}
-        </ul>
-    </nav>
-    <nav class="room-navigation" aria-label="{% translate 'Rooms' %}">
-        <h2>{% translate "Rooms" %}</h2>
-        <ul>
-            {% for navigation_room in rooms %}
-                <li>
-                    {% if room.pk == navigation_room.pk %}
-                        <strong aria-current="page">{{ navigation_room.name }}</strong>
-                    {% else %}
-                        <a href="{{ asset_prefix }}rooms/{{ navigation_room.pk }}.html">{{ navigation_room.name }}</a>
-                    {% endif %}
-                </li>
-            {% empty %}
-                <li>{% translate "No rooms." %}</li>
-            {% endfor %}
-        </ul>
-    </nav>
-    <nav class="speaker-navigation" aria-label="{% translate 'Speakers' %}">
-        <h2>{% translate "Speakers" %}</h2>
-        <ul>
-            <li>
-                {% if is_speaker_overview %}
-                    <strong aria-current="page">{% translate "All speakers" %}</strong>
-                {% else %}
-                    <a href="{{ asset_prefix }}speakers/index.html">{% translate "All speakers" %}</a>
-                {% endif %}
-            </li>
-        </ul>
-    </nav>
-</div>
+            </ul>
+        {% endif %}
+    {% endfor %}
+</nav>

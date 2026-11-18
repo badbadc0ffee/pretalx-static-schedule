@@ -1,10 +1,5 @@
 {% extends "pretalx_static_schedule/base.html" %}
 {% load i18n rich_text tz %}
-{% block title %}{{ room.name }} – {{ event.name }}{% endblock %}
-{% block header %}
-    <a href="../index.html">{{ event.name }}</a>
-    <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
-{% endblock %}
 {% block content %}
     <article class="room-detail">
         <h1>{{ room.name }}</h1>

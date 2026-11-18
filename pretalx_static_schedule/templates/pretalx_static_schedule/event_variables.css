@@ -1,0 +1,5 @@
+
+:root {
+    --color-primary: {{ event.visible_primary_color }};
+    {% if event.primary_color_needs_dark_text %}--color-text-on-primary: var(--color-text);{% endif %}
+}

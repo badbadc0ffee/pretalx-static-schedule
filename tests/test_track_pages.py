@@ -87,7 +87,7 @@ def test_track_pages_group_only_their_published_sessions_by_schedule_day(
     page = BeautifulSoup(files[f"tracks/{track.pk}.html"], "html.parser")
     assert page.h1.get_text() == "Tools"
     assert page.title.get_text(strip=True) == f"Tools – {event.name}"
-    assert "Schedule version 2.0" in page.get_text()
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
     groups = page.select(".schedule-day")
     assert len(groups) == 2
     assert [group.select_one("h2 a")["href"] for group in groups] == [
@@ -111,7 +111,7 @@ def test_track_pages_group_only_their_published_sessions_by_schedule_day(
     assert "Unscheduled session" not in empty_page.get_text()
     assert not empty_page.select(".schedule-day, .session")
     overview = BeautifulSoup(files["index.html"], "html.parser")
-    assert [link.get_text() for link in overview.select(".track-navigation a")] == [
+    assert [link.get_text() for link in overview.select('[data-group="tracks"] a')] == [
         "Empty track",
         "Other track",
         "Tools",
@@ -128,7 +128,7 @@ def test_track_pages_use_the_current_published_schedule(published_talk_slot, eve
     page = BeautifulSoup(
         files[f"tracks/{published_talk_slot.submission.track_id}.html"], "html.parser"
     )
-    assert "Schedule version 2.0" in page.get_text()
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
     assert "No sessions in this track." in page.get_text()
     assert not page.select(".session")
 
@@ -159,7 +159,7 @@ def test_track_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference == "https://example.org"
+                assert reference in {"https://example.org", event.urls.schedule.full()}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

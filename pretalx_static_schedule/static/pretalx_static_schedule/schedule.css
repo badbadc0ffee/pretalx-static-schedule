@@ -18,23 +18,23 @@ a:focus {
 }
 
 header,
-.schedule-navigation,
+main,
 .schedule-day,
 .speaker,
 .resources {
     margin-bottom: 2rem;
 }
 
-.schedule-navigation nav + nav {
+header nav [data-group] + [data-group] {
     margin-top: 1rem;
 }
 
-.schedule-navigation h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
+header nav [data-group]::before {
+    flex-basis: 100%;
+    font-weight: bold;
 }
 
-.schedule-navigation ul {
+header nav [data-group] {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -43,18 +43,76 @@ header,
     list-style: none;
 }
 
-.schedule-navigation a,
-.schedule-navigation [aria-current="page"] {
+header nav a {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border: 1px solid var(--color-border);
     border-radius: 0.25rem;
 }
 
-.schedule-navigation [aria-current="page"] {
+header nav [aria-current="page"] {
     color: var(--color-text-on-primary);
     background-color: var(--color-primary);
     border-color: var(--color-primary);
+}
+
+header [data-field="event"] {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+header dl > div {
+    display: flex;
+    gap: 0.5rem;
+}
+
+header dd {
+    margin: 0;
+}
+
+[data-field="schedule-version"] > dt::before {
+    content: "Schedule version";
+}
+
+[data-field="timezone"] > dt::before {
+    content: "Timezone";
+}
+
+[data-group="sessions"]::before {
+    content: "Sessions";
+}
+
+[data-group="days"]::before {
+    content: "Days";
+}
+
+[data-group="speakers"]::before {
+    content: "Speakers";
+}
+
+[data-group="tracks"]::before {
+    content: "Tracks";
+}
+
+[data-group="rooms"]::before {
+    content: "Rooms";
+}
+
+[data-label="all-sessions"]::before {
+    content: "All sessions";
+}
+
+[data-label="all-speakers"]::before {
+    content: "All speakers";
+}
+
+footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
 }
 
 .session {
@@ -93,12 +151,12 @@ img {
     height: auto;
 }
 
-.event-logo {
+header [data-field="event"] img {
     max-height: 9rem;
     width: auto;
 }
 
-.event-header-image {
+header [data-field="banner"] {
     max-height: 20rem;
     object-fit: cover;
 }

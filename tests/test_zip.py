@@ -3,6 +3,7 @@ from pathlib import PurePosixPath
 from zipfile import ZipFile
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django_scopes import scope
 from freezegun import freeze_time
@@ -60,7 +61,7 @@ def test_render_returns_a_complete_zip(
     )
     detail = (root / "sessions/TOOLS01.html").read_text(encoding="utf-8")
     assertInHTML("<h1>Building &lt;tools&gt;</h1>", detail)
-    assertInHTML(f'<a href="../index.html">{event.name}</a>', detail)
+    assertInHTML(f'<a data-field="event" href="../index.html">{event.name}</a>', detail)
     assert "Room A" in detail
     assert "Ada Example" in detail
     assertInHTML(
@@ -83,7 +84,8 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event, day
             "assets/variables.css",
         }
         overview = archive.read("index.html").decode("utf-8")
-    assert "Schedule version 1.0" in overview
+    page = BeautifulSoup(overview, "html.parser")
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
     assert overview.count("No sessions on") == event.duration
 
 

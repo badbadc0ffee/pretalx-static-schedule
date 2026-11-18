@@ -1,36 +1,49 @@
-{% load i18n static_schedule %}
+{% load static_schedule %}
 <!DOCTYPE html>
-{% get_current_language as language %}
-<html lang="{{ language }}">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{% block title %}{% endblock %}</title>
-        <link rel="stylesheet" href="{{ asset_prefix }}assets/variables.css">
-        <link rel="stylesheet" href="{{ asset_prefix }}assets/schedule.css">
-        <style>
-            :root {
-                --color-primary: {{ event.visible_primary_color }};
-                {% if event.primary_color_needs_dark_text %}--color-text-on-primary: var(--color-text);{% endif %}
-            }
-        </style>
+        <title>{% block title %}{{ page.title }} – {{ metadata.title }}{% endblock %}</title>
+        <link rel="stylesheet" href="{{ page.asset_prefix }}assets/variables.css">
+        <link rel="stylesheet" href="{{ page.asset_prefix }}assets/schedule.css">
     </head>
     <body>
-        {% local_asset event.header_image as header_image_url %}
-        {% if header_image_url %}<img
-                class="event-header-image"
-                src="{{ header_image_url }}"
-                alt="{{ event.name }}"
-            >{% endif %}
         <header>
-            {% local_asset event.logo as logo_url %}
-            {% if logo_url %}<img class="event-logo" src="{{ logo_url }}" alt="{{ event.name }}">{% endif %}
-            {% block header %}{% endblock %}
-            <p>{% blocktranslate with timezone=event.timezone %}Times are in {{ timezone }}.{% endblocktranslate %}</p>
-        </header>
-        <main>
+            {% block header %}
+                {% local_asset metadata.banner as banner_url %}
+                {% if banner_url %}<img
+                        data-field="banner"
+                        src="{{ banner_url }}"
+                        alt="{{ metadata.title }}"
+                    >{% endif %}
+                {% local_asset metadata.logo as logo_url %}
+                <a data-field="event" href="{{ page.asset_prefix }}index.html">{% if logo_url %}<img
+                            src="{{ logo_url }}"
+                            alt=""
+                        >{% endif %}{{ metadata.title }}</a>
+                <dl>
+                    <div data-field="schedule-version">
+                        <dt aria-label="Schedule version"></dt>
+                        <dd>{{ metadata.schedule_version }}</dd>
+                    </div>
+                    <div data-field="timezone">
+                        <dt aria-label="Timezone"></dt>
+                        <dd>{{ metadata.timezone }}</dd>
+                    </div>
+                </dl>
+            {% endblock %}
             {% block navigation %}{% include "pretalx_static_schedule/navigation.html" %}{% endblock %}
+        </header>
+        <main {% for name, value in page.attributes.items %} {{ name }}="{{ value }}"{% endfor %}>
             {% block content %}{% endblock %}
         </main>
+        <footer>
+            {% block footer %}
+                <a rel="external" href="{{ metadata.source_url }}">Source schedule</a>
+                <data data-field="exporter-version" value="{{ metadata.exporter_version }}">pretalx-static-schedule
+                    {{ metadata.exporter_version }}</data>
+            {% endblock %}
+        </footer>
     </body>
 </html>

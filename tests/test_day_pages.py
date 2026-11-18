@@ -86,7 +86,7 @@ def test_daily_overviews_follow_pretalx_day_grouping(event, day_files, timezone)
             for link in session.find_all("a", href=True):
                 link["href"] = link["href"].removeprefix("../")
         assert sessions == overview.select(".schedule-day")[offset].select(".session")
-        assert "Schedule version 1.0" in page.get_text()
+        assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
         assert not page.find(["script", "form", "iframe"])
     first = BeautifulSoup(files[day_files[0]], "html.parser")
     second = BeautifulSoup(files[day_files[1]], "html.parser")
@@ -118,8 +118,7 @@ def test_daily_overviews_use_only_the_current_published_schedule(
 
     for name in day_files:
         page = BeautifulSoup(files[name], "html.parser")
-        assert "Schedule version 2.0" in page.get_text()
-        assert "Schedule version 1.0" not in page.get_text()
+        assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
         assert not page.select(".session")
         assert "No sessions on" in page.get_text()
 
@@ -139,7 +138,9 @@ def test_daily_overview_links_and_assets_work_after_extraction(
         assert page.find("link", href="../assets/variables.css")
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
-            assert not urlsplit(reference).scheme
+            if urlsplit(reference).scheme:
+                assert reference == event.urls.schedule.full()
+                continue
             assert not reference.startswith("/")
             resolved = urlsplit(
                 urljoin(f"https://static.example.org{deployment}{name}", reference)
@@ -191,8 +192,11 @@ def test_daily_overviews_have_date_titles_and_overview_links(
         date = event.date_from + dt.timedelta(days=offset)
         assert (
             " ".join(page.title.get_text().split())
-            == f"{event.name} – Schedule – {date.isoformat()}"
+            == f"{date.isoformat()} – {event.name}"
         )
-        assert page.select_one("header h1 a")["href"] == "../index.html"
+        assert page.select_one('header [data-field="event"]')["href"] == "../index.html"
         assert page.select_one(".schedule-day h2 a")["href"] == f"../{name}"
-        assert page.select_one("header h1 a").get_text() == str(event.name)
+        assert page.select_one('header [data-field="event"]').get_text() == str(
+            event.name
+        )
+        assert page.main.h1.time["datetime"] == date.isoformat()

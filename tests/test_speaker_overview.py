@@ -73,10 +73,10 @@ def test_speaker_overview_links_and_assets_work_after_extraction(
         archive.extractall(tmp_path)
 
     page = BeautifulSoup((tmp_path / "speakers/index.html").read_text(), "html.parser")
-    assert page.h1.get_text() == "Speakers"
-    assert page.title.get_text() == f"Speakers – {event.name}"
+    assert page.main.h1["aria-label"] == "All speakers"
+    assert page.title.get_text() == f"All speakers – {event.name}"
     assert page.header.find("a")["href"] == "../index.html"
-    assert "Schedule version 1.0" in page.header.get_text()
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
     assert (
         page.select_one(".speaker-list > .speaker > h2 > a")["href"] == "ADA0001.html"
     )
@@ -90,7 +90,9 @@ def test_speaker_overview_links_and_assets_work_after_extraction(
     for element in page.select("[href], [src]"):
         reference = element.get("href", element.get("src"))
         assert not reference.startswith("/")
-        assert not urlsplit(reference).scheme
+        if urlsplit(reference).scheme:
+            assert reference == event.urls.schedule.full()
+            continue
         resolved = urlsplit(
             urljoin(
                 f"https://static.example.org{deployment}speakers/index.html", reference

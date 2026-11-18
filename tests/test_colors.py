@@ -21,7 +21,7 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_original_variables_stylesheet_is_exported(
+def test_original_variables_stylesheet_is_exported_with_event_overrides(
     published_talk_slot, event, client, tmp_path
 ):
     response = client.get(published_talk_slot.submission.urls.public)
@@ -33,9 +33,11 @@ def test_original_variables_stylesheet_is_exported(
         _, _, data = StaticScheduleExporter(event).render(request=None)
 
     with ZipFile(BytesIO(data)) as archive:
-        assert archive.read("assets/variables.css") == original
+        exported = archive.read("assets/variables.css")
+        assert exported.startswith(original)
+        assert b":root" in exported[len(original) :]
         archive.extractall(tmp_path)
-    assert (tmp_path / "assets/variables.css").read_bytes() == original
+    assert (tmp_path / "assets/variables.css").read_bytes() == exported
     assert b"--color-primary:" in original
     assert b"@import" not in original
     assert b"url(" not in original
@@ -63,6 +65,19 @@ def test_pages_use_the_event_color(published_talk_slot, event, color, settings, 
     response = client.get(event.urls.settings_css)
     assert response.status_code == 200
     original = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", response.content.decode()))
+    base = Path(finders.find("common/css/_variables.css")).read_bytes()
+    overrides = files["assets/variables.css"][len(base) :].decode()
+    assert ":root" in overrides
+    definitions = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", overrides))
+    assert definitions["--color-primary"] == (
+        color or settings.DEFAULT_EVENT_PRIMARY_COLOR
+    )
+    for variable, value in original.items():
+        assert definitions[variable] == value
+    if color == "#ffffcc":
+        assert definitions["--color-text-on-primary"] == "var(--color-text)"
+    else:
+        assert "--color-text-on-primary" not in definitions
     for name in (
         "index.html",
         "sessions/TOOLS01.html",
@@ -70,19 +85,7 @@ def test_pages_use_the_event_color(published_talk_slot, event, color, settings, 
         "speakers/index.html",
     ):
         page = BeautifulSoup(files[name], "html.parser")
-        style = page.find("style")
-        assert style is not None
-        assert ":root" in style.get_text()
-        definitions = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", style.get_text()))
-        assert definitions["--color-primary"] == (
-            color or settings.DEFAULT_EVENT_PRIMARY_COLOR
-        )
-        for variable, value in original.items():
-            assert definitions[variable] == value
-        if color == "#ffffcc":
-            assert definitions["--color-text-on-primary"] == "var(--color-text)"
-        else:
-            assert "--color-text-on-primary" not in definitions
+        assert not page.find("style")
     css = files["assets/schedule.css"].decode()
     assert "color: var(--color-text);" in css
     assert "background-color: var(--color-bg);" in css

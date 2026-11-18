@@ -325,6 +325,7 @@ def test_extracted_site_contains_the_public_page_information(
                 assert (
                     reference.startswith("https://example.org")
                     or reference == recording_url
+                    or reference == event.urls.schedule.full()
                 )
                 continue
             assert not parsed.path.startswith("/")

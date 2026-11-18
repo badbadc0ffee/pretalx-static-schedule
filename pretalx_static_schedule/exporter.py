@@ -72,16 +72,16 @@ class StaticScheduleExporter(BaseExporter):
             ).read_bytes(),
             "assets/variables.css": Path(
                 finders.find("common/css/_variables.css")
-            ).read_bytes(),
+            ).read_bytes()
+            + render_to_string(
+                "pretalx_static_schedule/event_variables.css", {"event": self.event}
+            ).encode("utf-8"),
         }
         context = {
             "event": self.event,
             "schedule": schedule,
             "metadata": data.metadata,
             "days": data.days,
-            "navigation_days": data.days,
-            "tracks": data.tracks,
-            "rooms": data.rooms,
             "asset_prefix": "",
             "files": files,
             "links": links,
@@ -106,13 +106,15 @@ class StaticScheduleExporter(BaseExporter):
 
             def rewrite_link(match, directory=directory):
                 url = unescape(match[2])
-                if url not in links:
+                if url not in links or re.search(
+                    r'\brel="[^"]*\bexternal\b[^"]*"', match[1] + match[3]
+                ):
                     return match[0]
                 path = posixpath.relpath(links[url], directory)
                 return f"{match[1]}{escape(path)}{match[3]}"
 
             files[name] = re.sub(
-                r'(<a\b[^>]*\bhref=")([^"]*)(")',
+                r'(<a\b[^>]*\bhref=")([^"]*)("[^>]*>)',
                 rewrite_link,
                 files[name].decode("utf-8"),
             ).encode("utf-8")

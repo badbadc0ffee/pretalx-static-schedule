@@ -233,7 +233,10 @@ def test_speaker_links_resolve_to_exported_pages(
         for link in page.find_all("a", href=True):
             url = urlsplit(link["href"])
             if url.scheme or url.netloc:
-                assert link["href"] == "https://example.org"
+                assert link["href"] in {
+                    "https://example.org",
+                    event.urls.schedule.full(),
+                }
                 continue
             assert not url.path.startswith("/")
             target = (

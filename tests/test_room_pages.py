@@ -130,7 +130,7 @@ def test_room_pages_group_published_sessions_and_breaks_by_schedule_day(
         overview = BeautifulSoup(files[name], "html.parser")
         assert [
             (link.get_text(), link["href"])
-            for link in overview.select(".room-navigation a")
+            for link in overview.select('[data-group="rooms"] a')
         ] == [
             (room.name, f"{prefix}rooms/{room.pk}.html")
             for room in (empty, other, main)
@@ -147,8 +147,7 @@ def test_room_pages_use_only_the_current_published_schedule(published_talk_slot,
     page = BeautifulSoup(
         files[f"rooms/{published_talk_slot.room_id}.html"], "html.parser"
     )
-    assert "Schedule version 2.0" in page.get_text()
-    assert "Schedule version 1.0" not in page.get_text()
+    assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
     assert "No sessions in this room." in page.get_text()
     assert not page.select(".session")
 
@@ -197,7 +196,7 @@ def test_room_links_and_assets_work_after_extraction(
         for element in page.select("[href], [src]"):
             reference = element.get("href", element.get("src"))
             if urlsplit(reference).scheme:
-                assert reference == "https://example.org"
+                assert reference in {"https://example.org", event.urls.schedule.full()}
                 continue
             assert not reference.startswith("/")
             resolved = urlsplit(

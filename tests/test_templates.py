@@ -2,6 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.template.loader import get_template
 from django_scopes import scope
@@ -50,14 +51,18 @@ def test_default_templates(published_talk_slot, event):
             template_root / f"pretalx_static_schedule/{name}"
         )
     for name, output, title in (
-        ("schedule.html", "index.html", f"{event.name} – Schedule"),
+        ("schedule.html", "index.html", f"All sessions – {event.name}"),
         (
             "session.html",
             "sessions/TOOLS01.html",
             f"Building &lt;tools&gt; – {event.name}",
         ),
         ("speaker.html", "speakers/ADA0001.html", f"Ada Example – {event.name}"),
-        ("speaker_overview.html", "speakers/index.html", f"Speakers – {event.name}"),
+        (
+            "speaker_overview.html",
+            "speakers/index.html",
+            f"All speakers – {event.name}",
+        ),
     ):
         template_name = f"pretalx_static_schedule/{name}"
         assert (
@@ -119,7 +124,7 @@ def test_base_override_changes_all_pages(
     override = template_directory / "pretalx_static_schedule/base.html"
     override.parent.mkdir()
     override.write_text(
-        '<!DOCTYPE html><html lang="en"><head><title>{% block title %}{% endblock %}</title></head>'
+        '<!DOCTYPE html><html lang="en"><head><title>{% block title %}{{ page.title }} – {{ metadata.title }}{% endblock %}</title></head>'
         "<body><p>Custom site {{ event.name }}</p>"
         "<header>{% block header %}{% endblock %}</header>"
         "<main>{% block content %}{% endblock %}</main></body></html>",
@@ -147,12 +152,67 @@ def test_base_override_changes_all_pages(
     assertInHTML("<h1>Ada Example</h1>", speaker_html)
     assertInHTML(f"<title>Ada Example – {event.name}</title>", speaker_html)
     assertInHTML(
-        f"<title>{event.name} – Schedule</title>", files["index.html"].decode("utf-8")
+        f"<title>All sessions – {event.name}</title>",
+        files["index.html"].decode("utf-8"),
     )
     assertInHTML(
         f"<title>Building &lt;tools&gt; – {event.name}</title>",
         files["sessions/TOOLS01.html"].decode("utf-8"),
     )
+
+
+def test_shared_shell_blocks_can_extend_the_defaults(
+    published_talk_slot, event, template_directory
+):
+    override = template_directory / "pretalx_static_schedule/base.html"
+    override.parent.mkdir()
+    override.write_text(
+        '{% extends "pretalx_static_schedule/base.html" %}'
+        "{% block title %}Custom {{ block.super }}{% endblock %}"
+        "{% block header %}{{ block.super }}<p>Header addition</p>{% endblock %}"
+        "{% block navigation %}{{ block.super }}<p>Navigation addition</p>{% endblock %}"
+        "{% block footer %}{{ block.super }}<p>Footer addition</p>{% endblock %}"
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+    for name, content in files.items():
+        if not name.endswith(".html"):
+            continue
+        page = BeautifulSoup(content, "html.parser")
+        assert page.title.get_text().startswith("Custom ")
+        assert page.header.find("p", string="Header addition")
+        assert page.header.find("p", string="Navigation addition")
+        assert page.header.nav.find("a", string="All sessions")
+        assert page.footer.find("p", string="Footer addition")
+        assert page.footer.find("a", string="Source schedule")
+
+
+@pytest.mark.parametrize("external_first", (False, True))
+def test_intentionally_external_links_keep_their_original_destinations(
+    published_talk_slot, event, template_directory, external_first
+):
+    override = template_directory / "pretalx_static_schedule/schedule.html"
+    override.parent.mkdir()
+    attributes = (
+        'rel="noopener external" href="{{ event.urls.schedule.full }}"'
+        if external_first
+        else 'href="{{ event.urls.schedule.full }}" rel="external noopener"'
+    )
+    override.write_text(
+        '{% extends "pretalx_static_schedule/schedule.html" %}'
+        "{% block content %}{{ block.super }}<a "
+        + attributes
+        + ">External schedule</a>"
+        '<a href="{{ event.urls.schedule.full }}">Local schedule</a>{% endblock %}'
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+    page = BeautifulSoup(files["index.html"], "html.parser")
+    assert (
+        page.main.find("a", string="External schedule")["href"]
+        == event.urls.schedule.full()
+    )
+    assert page.main.find("a", string="Local schedule")["href"] == "index.html"
 
 
 @pytest.mark.parametrize(

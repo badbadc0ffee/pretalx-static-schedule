@@ -327,11 +327,7 @@ def test_export_interface_is_english_and_preserves_authored_content(
         if name.endswith(".html"):
             page = BeautifulSoup(content, "html.parser")
             assert page.html["lang"] == "en"
-            assert (
-                page.select_one(".day-navigation")
-                .get_text(strip=True)
-                .startswith("Days")
-            )
+            assert page.select_one('[data-group="days"]')["aria-label"] == "Days"
     session = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
     assert session.h1.get_text() == submission.title
     assert submission.abstract in session.get_text()
@@ -379,7 +375,9 @@ def test_templates_receive_prepared_page_data(published_talk_slot, event, mocker
     with scope(event=event):
         StaticScheduleExporter(event).get_files()
     contexts = {
-        call.args[1]["page"]["filename"]: call.args[1] for call in render.call_args_list
+        call.args[1]["page"]["filename"]: call.args[1]
+        for call in render.call_args_list
+        if "page" in call.args[1]
     }
     detail = contexts["sessions/TOOLS01.html"]
     assert detail["page"]["item"]["code"] == "TOOLS01"
@@ -388,3 +386,4 @@ def test_templates_receive_prepared_page_data(published_talk_slot, event, mocker
     overview = contexts["speakers/index.html"]
     assert overview["page"]["items"][0]["presentations"][0]["code"] == "TOOLS01"
     assert overview["metadata"]["exporter_version"] == __version__
+    assert all("navigation_days" not in context for context in contexts.values())

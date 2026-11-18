@@ -28,62 +28,71 @@ def test_navigation_is_consistent_on_every_page(
         files = StaticScheduleExporter(event).get_files()
 
     destinations = {
-        "day-navigation": ["index.html", *day_files],
-        "track-navigation": [f"tracks/{track.pk}.html" for track in tracks],
-        "room-navigation": [f"rooms/{room.pk}.html" for room in rooms],
-        "speaker-navigation": ["speakers/index.html"],
+        "sessions": ["index.html"],
+        "days": day_files,
+        "speakers": ["speakers/index.html"],
+        "tracks": [f"tracks/{track.pk}.html" for track in tracks],
+        "rooms": [f"rooms/{room.pk}.html" for room in rooms],
     }
     for name, contents in files.items():
         if not name.endswith(".html"):
             continue
         page = BeautifulSoup(contents, "html.parser")
-        navigation = page.select_one(".schedule-navigation")
+        navigation = page.select_one('header > nav[aria-label="Schedule"]')
         assert navigation is not None
-        assert page.main.find(recursive=False) == navigation
-        assert [group["class"][0] for group in navigation.find_all("nav")] == list(
+        assert not page.main.find("nav")
+        assert [group["data-group"] for group in navigation.find_all("ul")] == list(
             destinations
         )
         for selector, expected in destinations.items():
-            group = navigation.select_one(f".{selector}")
+            group = navigation.select_one(f'[data-group="{selector}"]')
+            assert group["aria-label"] == selector.title()
+            assert not group.find(["h1", "h2", "h3", "strong"])
             items = group.select("li")
             assert len(items) == len(expected)
             for item, destination in zip(items, expected, strict=True):
-                if name == destination:
-                    current = item.find(attrs={"aria-current": "page"})
-                    assert current is not None
-                    assert current.name == "strong"
-                    assert not item.find("a")
-                else:
-                    link = item.find("a")
-                    assert link is not None
-                    assert not link["href"].startswith("/")
-                    assert (
-                        posixpath.normpath(
-                            posixpath.join(posixpath.dirname(name), link["href"])
-                        )
-                        == destination
+                link = item.find("a")
+                assert link is not None
+                assert not link["href"].startswith("/")
+                assert (
+                    posixpath.normpath(
+                        posixpath.join(posixpath.dirname(name), link["href"])
                     )
-                    assert destination in files
-                    assert not item.find(attrs={"aria-current": "page"})
+                    == destination
+                )
+                assert destination in files
+                assert link.get("aria-current") == (
+                    "page" if name == destination else None
+                )
             assert len(group.select("[aria-current='page']")) == int(name in expected)
         assert [
             item.get_text(strip=True)
-            for item in navigation.select(".track-navigation li")
+            for item in navigation.select('[data-group="tracks"] li')
         ] == [str(track.name) for track in tracks]
         assert [
             item.get_text(strip=True)
-            for item in navigation.select(".room-navigation li")
+            for item in navigation.select('[data-group="rooms"] li')
         ] == [str(room.name) for room in rooms]
         assert [
-            time["datetime"] for time in navigation.select(".day-navigation time")
+            time["datetime"] for time in navigation.select('[data-group="days"] time')
         ] == [
+            (event.date_from + dt.timedelta(days=offset)).isoformat()
+            for offset in range(event.duration)
+        ]
+        assert [link["data-track"] for link in navigation.select("[data-track]")] == [
+            str(track.pk) for track in tracks
+        ]
+        assert [link["data-room"] for link in navigation.select("[data-room]")] == [
+            str(room.pk) for room in rooms
+        ]
+        assert [link["data-day"] for link in navigation.select("[data-day]")] == [
             (event.date_from + dt.timedelta(days=offset)).isoformat()
             for offset in range(event.duration)
         ]
         assert not navigation.find(["track", "room"])
 
 
-def test_navigation_shows_empty_track_and_room_lists(
+def test_navigation_omits_empty_track_and_room_groups(
     published_schedule, event, day_files
 ):
     with scope(event=event):
@@ -91,11 +100,12 @@ def test_navigation_shows_empty_track_and_room_lists(
 
     for name in ("index.html", *day_files, "speakers/index.html"):
         page = BeautifulSoup(files[name], "html.parser")
-        assert len(page.select(".schedule-navigation nav")) == 4
-        assert "No tracks." in page.select_one(".track-navigation").get_text()
-        assert "No rooms." in page.select_one(".room-navigation").get_text()
-        assert not page.select(".track-navigation a, .room-navigation a")
-        assert len(page.select(".day-navigation li")) == event.duration + 1
+        assert [group["data-group"] for group in page.select("header nav ul")] == [
+            "sessions",
+            "days",
+            "speakers",
+        ]
+        assert len(page.select('[data-group="days"] li')) == event.duration
 
 
 def test_shared_navigation_template_can_be_overridden(
@@ -107,9 +117,10 @@ def test_shared_navigation_template_can_be_overridden(
     override = tmp_path / "pretalx_static_schedule/navigation.html"
     override.parent.mkdir()
     override.write_text(
-        '<nav class="custom-navigation">{% for day in navigation_days %}'
-        '<a href="{{ asset_prefix }}{{ day.filename }}">{{ day.filename }}</a>'
-        "{% endfor %}</nav>"
+        '<nav class="custom-navigation">{% for group in page.navigation %}'
+        '{% if group.kind == "days" %}{% for day in group.items %}'
+        '<a href="{{ page.asset_prefix }}{{ day.filename }}">{{ day.filename }}</a>'
+        "{% endfor %}{% endif %}{% endfor %}</nav>"
     )
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
@@ -118,7 +129,8 @@ def test_shared_navigation_template_can_be_overridden(
         if not name.endswith(".html"):
             continue
         page = BeautifulSoup(contents, "html.parser")
-        assert not page.select(".schedule-navigation")
+        assert not page.select("header nav[data-group]")
+        assert page.select_one("header > .custom-navigation")
         links = page.select(".custom-navigation a")
         assert len(links) == len(day_files)
         assert [

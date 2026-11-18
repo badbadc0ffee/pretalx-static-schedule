@@ -316,8 +316,7 @@ class ScheduleRenderData:
 
     def pages(self):
         yield self.overview("sessions", "index.html", "All sessions", self.days) | {
-            "template": "schedule.html",
-            "is_overview": True,
+            "template": "schedule.html"
         }
         for day in self.days:
             yield self.overview("day", day["filename"], day["date"], [day]) | {
@@ -370,5 +369,4 @@ class ScheduleRenderData:
             "items": [
                 self.speaker_view(speaker["code"]) for speaker in self.sorted_speakers
             ],
-            "is_speaker_overview": True,
         }

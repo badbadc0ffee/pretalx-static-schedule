@@ -1,19 +1,12 @@
 {% extends "pretalx_static_schedule/base.html" %}
 {% load i18n tz %}
-{% block title %}
-    {{ event.name }} – {% translate "Schedule" %}{% if overview_day %}
-        – {{ overview_day.start.date|date:"Y-m-d" }}{% endif %}
-{% endblock %}
-{% block header %}
-    <h1>
-        {% if overview_day %}<a
-                href="{{ asset_prefix }}index.html"
-            >{{ event.name }}</a>{% else %}{{ event.name }}{% endif %}
-    </h1>
-    <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
-{% endblock %}
 {% block content %}
     {% timezone event.timezone %}
+        {% if overview_day %}
+            <h1><time datetime="{{ overview_day.date }}">{{ overview_day.start|date:"F j, Y" }}</time></h1>
+        {% else %}
+            <h1 data-label="all-sessions" aria-label="All sessions"></h1>
+        {% endif %}
         {% for day in days %}
             <section class="schedule-day">
                 <h2>

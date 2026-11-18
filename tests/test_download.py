@@ -2,6 +2,7 @@ from io import BytesIO
 from zipfile import ZipFile
 
 import pytest
+from bs4 import BeautifulSoup
 from django_scopes import scope
 from freezegun import freeze_time
 
@@ -46,7 +47,8 @@ def test_zip_download_from_organiser_interface(
             "assets/schedule.css",
             "assets/variables.css",
         }
-        assert "Schedule version 1.0" in archive.read("index.html").decode("utf-8")
+        page = BeautifulSoup(archive.read("index.html"), "html.parser")
+        assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
         assert "Ada Example" in archive.read("sessions/TOOLS01.html").decode("utf-8")
         assert "Ada Example" in archive.read("speakers/ADA0001.html").decode("utf-8")
 
@@ -106,6 +108,6 @@ def test_download_uses_the_latest_published_schedule(
             "assets/variables.css",
         }
         html = archive.read("index.html").decode("utf-8")
-        assert "Schedule version 2.0" in html
-        assert "Schedule version 1.0" not in html
+        page = BeautifulSoup(html, "html.parser")
+        assert page.select_one('[data-field="schedule-version"] dd').get_text() == "2.0"
         assert "Building &lt;tools&gt;" not in html
