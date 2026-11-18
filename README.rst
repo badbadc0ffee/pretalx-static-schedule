@@ -35,6 +35,7 @@ ZIP contents
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
 * ``assets/variables.css``: pretalx CSS variables with event, track and public-tag color rules.
+* ``assets/fonts/``: local Jersey 10 and Hack fonts with their license files.
 * ``media/``: uploaded images and public files, when present.
 
 Speaker pages include the biography, public photo, public answers and files,
@@ -70,7 +71,7 @@ grouped by schedule day. Empty rooms have an empty page. Rooms appear in their
 configured order. Room names on session cards and detail pages link to their
 room overview. Room filenames use IDs, so renaming a room does not change its URL.
 
-Every session summary shows the title, image when present, abstract, scheduled
+Every session summary contains the title, image when present, abstract, scheduled
 date and times, actual duration, room, content language, assigned track and
 public tags. The same component is used on schedule, day, track, room and
 speaker pages. Session details add the full description, every scheduled
@@ -85,11 +86,12 @@ A relationship list is omitted only when its sole distinct entity is the
 surrounding parent. Repeated occurrences of one session still count as one
 entity. Root overview and detail lists include single entries.
 
-Pages use the event's primary color. Session cards and track labels use the
-assigned track color. Public tags appear as badges with their assigned colors.
-Navigation and tag text use a contrasting foreground; links use darker shades
-of the event or track color. Invalid track and tag colors use the event color;
-an invalid event color uses pretalx's default.
+The default stylesheet follows the 40C3 light-interface style: a pale green
+background, green outlined navigation and cards, Jersey 10 headings and Hack
+body text. It uses the 40C3 primary green. Tracks and public tags use their
+assigned colors. Event color variables are also exported for custom stylesheets;
+invalid track and tag colors fall back to the event color.
+Fonts and their licenses are bundled locally, so styling works offline.
 
 All layout, colors and visible interface captions are supplied by the external
 stylesheets. Default templates, rendered rich text and plugin fragments contain
@@ -98,6 +100,11 @@ in the HTML. Session and speaker summaries use the same typography, spacing
 and field styling on every page, independent of heading depth or surrounding
 entity. The stylesheet supports narrow screens and print; printing omits the
 navigation and banner while retaining the event identity and schedule metadata.
+Summary prose is limited to three visible lines. Compact speaker presentation
+lists show the title and start date/time; session language is displayed on
+detail pages. The full values remain in the semantic HTML. Navigation group
+captions and active listing headings are visually hidden, and recording notices
+use a camera icon with an English accessible name.
 
 Session pages include recording information from enabled recording providers.
 Recording descriptions and labels are kept as text. Links in provider HTML,
@@ -200,7 +207,8 @@ template tag to copy an uploaded file and get its relative URL::
 Use ``{{ asset_prefix }}assets/schedule.css`` to link the included stylesheet.
 
 Override ``pretalx_static_schedule/schedule.css`` through Django's static file
-finders to replace the stylesheet. Semantic ``data-kind`` and ``data-view``
+finders to replace the stylesheet. Fonts and their license files can likewise
+be overridden under ``pretalx_static_schedule/fonts/``. Semantic ``data-kind`` and ``data-view``
 attributes identify summaries and details; ``data-day``, ``data-room`` and
 ``data-track`` identify occurrences and navigation destinations. Relationship
 lists use ``data-rel``. You can style a summary by its own attributes, its

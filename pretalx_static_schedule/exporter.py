@@ -16,6 +16,17 @@ from pretalx.common.exporter import BaseExporter
 
 from .rendering import ScheduleRenderData
 
+FONT_FILES = (
+    "jersey-10-latin-ext-400-normal.woff2",
+    "jersey-10-latin-400-normal.woff2",
+    "jersey-10_License.txt",
+    "Hack-Regular.woff2",
+    "Hack-Bold.woff2",
+    "Hack-Italic.woff2",
+    "Hack-BoldItalic.woff2",
+    "Hack-License.txt",
+)
+
 
 class StaticScheduleExporter(BaseExporter):
     verbose_name = _("Static HTML (ZIP)")
@@ -86,6 +97,10 @@ class StaticScheduleExporter(BaseExporter):
                 },
             ).encode("utf-8"),
         }
+        for name in FONT_FILES:
+            files[f"assets/fonts/{name}"] = Path(
+                finders.find(f"pretalx_static_schedule/fonts/{name}")
+            ).read_bytes()
         context = {
             "event": self.event,
             "schedule": schedule,

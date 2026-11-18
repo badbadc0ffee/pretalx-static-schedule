@@ -1,9 +1,14 @@
 import posixpath
+import re
 from html.parser import HTMLParser
+from io import BytesIO
+from pathlib import Path
 from urllib.parse import quote, unquote, urljoin, urlsplit
+from zipfile import ZipFile
 
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django_scopes import scope
 from pytest_django.asserts import assertInHTML
@@ -76,7 +81,19 @@ def test_local_stylesheet(published_talk_slot, event):
 
     assert b"body" in files["assets/schedule.css"]
     assert b"@import" not in files["assets/schedule.css"]
-    assert b"url(" not in files["assets/schedule.css"]
+    references = re.findall(r'url\("([^\"]+)"\)', files["assets/schedule.css"].decode())
+    fonts = []
+    for reference in references:
+        parts = urlsplit(reference)
+        if parts.scheme == "data":
+            assert reference.startswith("data:image/svg+xml,")
+            continue
+        assert not parts.scheme
+        assert not parts.netloc
+        destination = posixpath.normpath(posixpath.join("assets", reference))
+        assert files[destination].startswith(b"wOF2")
+        fonts.append(destination)
+    assert len(fonts) == 6
     for page, href in (
         ("index.html", "assets/schedule.css"),
         ("sessions/TOOLS01.html", "../assets/schedule.css"),
@@ -84,6 +101,30 @@ def test_local_stylesheet(published_talk_slot, event):
         assertInHTML(
             f'<link rel="stylesheet" href="{href}">', files[page].decode("utf-8")
         )
+
+
+def test_bundled_fonts_and_licenses_are_exported_and_honor_static_overrides(
+    published_talk_slot, event, stylesheet_files, settings, tmp_path
+):
+    static_root = tmp_path / "static"
+    custom_font = static_root / "pretalx_static_schedule/fonts/Hack-Regular.woff2"
+    custom_font.parent.mkdir(parents=True)
+    custom_font.write_bytes(b"Custom font override")
+    settings.STATICFILES_DIRS = [static_root, *settings.STATICFILES_DIRS]
+    with scope(event=event):
+        _, _, data = StaticScheduleExporter(event).render(request=None)
+    with ZipFile(BytesIO(data)) as archive:
+        archive.extractall(tmp_path / "site")
+    font_files = [name for name in stylesheet_files if name.startswith("assets/fonts/")]
+    assert len(font_files) == 8
+    for name in font_files:
+        original = Path(
+            finders.find("pretalx_static_schedule/" + name.removeprefix("assets/"))
+        )
+        assert (tmp_path / "site" / name).read_bytes() == original.read_bytes()
+    assert (
+        tmp_path / "site/assets/fonts/Hack-Regular.woff2"
+    ).read_bytes() == b"Custom font override"
 
 
 def test_public_downloads_are_local(published_talk_slot, event):

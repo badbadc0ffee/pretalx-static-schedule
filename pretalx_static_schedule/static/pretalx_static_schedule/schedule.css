@@ -445,3 +445,1629 @@ article > [data-rel="files"]::before {
         border: 1px solid currentColor;
     }
 }
+
+@font-face {
+    font-family: "Jersey 10";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/jersey-10-latin-ext-400-normal.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+        U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+        U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Jersey 10";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/jersey-10-latin-400-normal.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
+        U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+        U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Hack";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/Hack-Regular.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Hack";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("fonts/Hack-Bold.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Hack";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/Hack-Italic.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Hack";
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+    src: url("fonts/Hack-BoldItalic.woff2") format("woff2");
+}
+
+
+:root { --no-camera-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3Cmask%20id%3D%22slash-gap%22%3E%3Cpath%20d%3D%22M0%200h24v24H0z%22%20fill%3D%22white%22%2F%3E%3Cpath%20d%3D%22M3%203l18%2018%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3C%2Fmask%3E%3C%2Fdefs%3E%3Cg%20mask%3D%22url%28%23slash-gap%29%22%20fill%3D%22none%22%20stroke%3D%22%23031202%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22miter%22%3E%3Cpath%20d%3D%22M3%208h5V5h8v3h5v12H3z%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2214%22%20r%3D%223.5%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M3%203l18%2018%22%20fill%3D%22none%22%20stroke%3D%22%23031202%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* 40C3 Styleguide v1.4, page 9: light interfaces.
+ * Adapted to the static export's data attributes. HTML stays unchanged.
+ * Fonts are local; licences are in assets/fonts/.
+ */
+:root {
+    color-scheme: light;
+    --paper: #dfeed5;
+    --ink: #031202;
+    --forest: #3b5831;
+    --green: #75b54b;
+    --sage: #7eae83;
+    --pink: #eb6f83;
+    --primary: var(--color-primary, var(--green));
+    --box-border-width: 2px;
+    --body-font: "Hack", "DejaVu Sans Mono", "Consolas", monospace;
+    --heading-font: "Jersey 10", "Hack", monospace;
+    --color-bg: var(--paper);
+    --color-text: var(--ink);
+    --color-text-on-primary: var(--ink);
+    --size-border-radius: 0;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); color: var(--ink); }
+body {
+    max-width: 74rem;
+    margin: 0 auto;
+    padding: clamp(1rem, 4vw, 3rem);
+    font-family: var(--body-font);
+    line-height: 1.6;
+}
+::selection { background: var(--forest); color: var(--paper); }
+a { color: var(--primary); text-underline-offset: 0.2em; text-decoration-thickness: 0.1em; }
+a:hover { color: var(--forest); text-decoration-thickness: 0.16em; }
+a:focus-visible {
+    outline: 0;
+    background: var(--primary);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: var(--box-border-width);
+}
+h1, h2, h3 {
+    font-family: var(--heading-font);
+    font-weight: 400;
+    line-height: 1.05;
+    text-wrap: pretty;
+}
+h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); }
+h2 { font-size: clamp(2rem, 4vw, 2.75rem); }
+h3 { font-size: 2rem; }
+p { margin: 0 0 1rem; }
+main, article, li { min-width: 0; }
+pre, code { font-family: var(--body-font); }
+pre, th, td { border: var(--box-border-width) solid var(--primary); }
+pre { background: transparent; }
+blockquote { border-inline-start: 6px solid var(--sage); }
+
+/* One masthead across all page types. */
+body > header { margin-bottom: 2.5rem; }
+header [data-field="event"] {
+    display: block;
+    margin: 0 0 0.25rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--forest);
+    font-family: var(--heading-font);
+    font-size: clamp(4rem, 11vw, 7rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0.025em;
+}
+header [data-field="event"]:is(:hover, :focus-visible) { text-decoration: underline; }
+header > dl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin: 0.75rem 0 1.5rem;
+    font-size: 0.875rem;
+}
+header > dl > div { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+header > dl dt { font-weight: 400; }
+header [data-field="schedule-version"] {
+    border: var(--box-border-width) solid var(--primary);
+    padding: 0.35rem 0.65rem;
+}
+header [data-field="timezone"] { margin-left: auto; }
+header [data-field="timezone"] > dt::before { content: "Times are in"; }
+header nav {
+    gap: 1.25rem;
+    border: 0;
+    border-top: var(--box-border-width) solid var(--primary);
+    padding: 1.5rem 0 0;
+}
+header nav [data-group] { align-items: center; gap: 0.5rem; }
+header nav [data-group]::before {
+    flex-basis: auto;
+    margin-right: 0.75rem;
+    font-family: var(--heading-font);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.05;
+}
+header nav a {
+    --link-color: var(--primary);
+    --link-ink: var(--ink);
+    display: block;
+    border: var(--box-border-width) solid var(--link-color);
+    border-radius: 0;
+    padding: 0.4rem 0.75rem;
+    background: transparent;
+    color: var(--link-color);
+    font-family: var(--heading-font);
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.1;
+    text-decoration: none;
+}
+header nav a[data-track] { --link-color: var(--track-color, var(--primary)); }
+header nav a:is([aria-current="page"], :hover, :focus-visible) {
+    border: 0;
+    outline: 0;
+    padding: calc(0.4rem + var(--box-border-width)) calc(0.75rem + var(--box-border-width));
+    background: var(--link-color);
+    color: var(--link-ink);
+    font-weight: 400;
+}
+header nav a:focus-visible { text-decoration: underline; }
+body > footer { border-top: var(--box-border-width) solid var(--primary); }
+
+/* Open listings; individual cards carry the outline. */
+main > section[data-day] { margin-bottom: 3.5rem; }
+main > section[data-day] > h2 {
+    margin: 0 0 1.5rem;
+    border: var(--box-border-width) solid var(--primary);
+    padding: 0;
+    color: var(--primary);
+}
+main > section[data-day] > h2 > a {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: inherit;
+    text-decoration: none;
+}
+main > section[data-day] > h2:has(a:is(:hover, :focus-visible)) {
+    border: 0;
+    padding: var(--box-border-width);
+    background: var(--primary);
+    color: var(--ink);
+}
+main > section[data-day] > h2 > a:focus-visible { background: transparent; text-decoration: underline; }
+[data-rel="sessions"], [data-rel="speakers"], [data-rel="occurrences"] {
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+main > section[data-day] > [data-rel="sessions"], main > [data-rel="speakers"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+article[data-kind][data-view="summary"], article[data-kind="break"] {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    margin: 0;
+    border: var(--box-border-width) solid var(--primary);
+    border-radius: 0;
+    padding: 0 1.1rem 1.1rem;
+    background: transparent;
+    line-height: 1.6;
+}
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6),
+article[data-kind="break"] > :is(h2, h3, h4, h5, h6) {
+    margin: 0 -1.1rem 1rem;
+    border-bottom: var(--box-border-width) solid var(--primary);
+    padding: 0;
+    color: var(--primary);
+    font-family: var(--heading-font);
+    font-weight: 400;
+    font-size: 2rem;
+}
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6) > a {
+    display: block;
+    padding: 0.75rem 1.1rem;
+    color: inherit;
+    text-decoration: none;
+}
+article[data-kind="break"] > :is(h2, h3, h4, h5, h6) { padding: 0.75rem 1.1rem; }
+article[data-view="summary"]:is(:hover, :focus-within) > :is(h2, h3, h4, h5, h6) {
+    border-bottom: 0;
+    padding-bottom: var(--box-border-width);
+    background: var(--primary);
+    color: var(--ink);
+}
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6) > a:focus-visible {
+    background: transparent;
+    text-decoration: underline;
+}
+article[data-kind="session"][data-view="summary"] > * { order: 5; }
+article[data-kind="session"][data-view="summary"] > :is(h2, h3, h4, h5, h6) { order: 0; }
+article[data-kind="session"][data-view="summary"] > dl:has([data-field="start"]) { order: 1; }
+article[data-kind="session"][data-view="summary"] > [data-rel="speakers"] { order: 2; }
+article[data-kind="session"][data-view="summary"] > [data-field="abstract"] {
+    order: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+article[data-kind="session"][data-view="summary"] > dl:not(:has([data-field="start"])) { order: 4; }
+article[data-kind="session"][data-view="summary"] > [data-rel="speakers"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin: 0 0 1rem;
+    font-weight: 700;
+}
+article[data-kind="session"][data-view="summary"] > [data-rel="speakers"]::before { content: none; }
+
+/* Preserve all metadata, captions and occurrence times. */
+article dl { margin: 0 0 1rem; }
+article dl:not([data-field="public-answers"]) > div {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.4rem;
+    margin: 0 0 0.3rem;
+}
+article dl dt { font-weight: 700; }
+article[data-view="summary"] dl { font-size: 0.8125rem; }
+article[data-view="summary"] dl:has([data-field="start"]) { color: var(--forest); }
+[data-field="track"] a { color: var(--primary); text-decoration-color: currentColor; text-decoration-thickness: 0.1em; }
+article [data-field="track"] {
+    border-left: 6px solid var(--track-color, var(--primary));
+    padding-left: 0.6rem;
+}
+article > [data-rel]::before {
+    font-family: var(--heading-font);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.05;
+}
+article > :is([data-rel="sessions"], [data-rel="files"], [data-field="public-answers"], [data-field="recording"]) {
+    clear: both;
+    margin-top: 1.5rem;
+    border-top: var(--box-border-width) solid var(--primary);
+    padding-top: 1.5rem;
+}
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] {
+    font-size: 0.875rem;
+}
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > a { font-weight: 700; }
+article [data-field="public-answers"] > dt {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+article [data-field="public-answers"] > dd { margin: 0.5rem 0 1.25rem; }
+[data-field="biography"] > :last-child, [data-field="abstract"] > :last-child,
+[data-field="description"] > :last-child { margin-bottom: 0; }
+
+/* Detail pages retain the shared heading and speaker-card design. */
+article[data-kind][data-view="detail"] {
+    display: flow-root;
+    border: var(--box-border-width) solid var(--primary);
+    padding: clamp(1rem, 3vw, 2rem);
+}
+article[data-view="detail"] > h1 {
+    margin: 0 0 1.5rem;
+    border-bottom: var(--box-border-width) solid var(--primary);
+    padding-bottom: 1.25rem;
+    color: var(--forest);
+    font-size: clamp(2.25rem, 4vw, 3.25rem);
+}
+article[data-kind="session"][data-view="detail"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10.5rem;
+    grid-auto-flow: row dense;
+    gap: 1.5rem 0.5rem;
+}
+article[data-kind="session"][data-view="detail"] > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+    margin: 0;
+    order: 5;
+}
+article[data-kind="session"][data-view="detail"] > h1 { order: 0; }
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"] {
+    order: 1;
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    background: var(--primary);
+    color: var(--ink);
+    font-size: 0.8125rem;
+}
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"]::before { content: none; }
+[data-rel="occurrences"] dl { margin: 0; }
+[data-rel="occurrences"] a { color: inherit; }
+[data-rel="occurrences"] a:focus-visible { background: var(--ink); color: var(--paper); }
+article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) > [data-rel="occurrences"] {
+    grid-column: 1;
+}
+article[data-kind="session"][data-view="detail"] > dl:not([data-field="public-answers"]) { order: 2; }
+article[data-kind="session"][data-view="detail"] > [data-rel="tags"] { order: 2; }
+article[data-kind="session"][data-view="detail"] > [data-field="abstract"] { order: 3; font-weight: 700; }
+article[data-kind="session"][data-view="detail"] > [data-field="description"] { order: 4; }
+article[data-view="detail"] > :is([data-field="abstract"], [data-field="description"], [data-field="biography"]) {
+    border: 0;
+    max-width: 72ch;
+}
+article[data-kind="session"][data-view="detail"] > [data-rel="speakers"] { margin-top: 0.5rem; }
+
+/* Avatar-sized images retain their original links and never upscale. */
+article[data-kind="speaker"] > [data-field="image"] {
+    float: left;
+    width: fit-content;
+    margin: 0.25rem 1.5rem 1rem 0;
+}
+article[data-kind="speaker"] > [data-field="image"] img {
+    max-width: 8rem;
+    max-height: 8rem;
+    width: auto;
+    height: auto;
+    border: var(--box-border-width) solid var(--primary);
+    border-radius: 0;
+}
+article[data-kind="session"] > [data-field="image"] {
+    float: right;
+    width: fit-content;
+    margin: 0 0 1rem auto;
+}
+article[data-kind="session"] > [data-field="image"] img {
+    max-width: min(12rem, 100%);
+    max-height: 12rem;
+    width: auto;
+    height: auto;
+    border: var(--box-border-width) solid var(--primary);
+    object-fit: contain;
+}
+article[data-kind="session"][data-view="detail"] > [data-field="image"] {
+    order: 3;
+    grid-column: 2;
+    grid-row: span 2;
+    justify-self: end;
+    align-self: start;
+}
+article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
+    grid-column: 1;
+    margin-right: 1.5rem;
+}
+
+/* Tags and recording notices are filled, without an outline. */
+[data-rel="tags"] { margin: 0 0 1rem; }
+[data-tag] {
+    border: 0;
+    border-radius: 0;
+    padding: 0.2625rem 0.5625rem;
+    background: var(--tag-color, var(--sage));
+    color: var(--tag-text-color, var(--ink));
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+[data-state="recording-forbidden"] {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    width: 10.5rem;
+    max-width: 100%;
+    margin: 0;
+    border: 0;
+    padding: 0.5rem 0.625rem;
+    background: var(--pink);
+    color: var(--ink);
+    font-size: 0;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 0;
+}
+[data-state="recording-forbidden"]::before {
+    content: "";
+    flex: 0 0 1.125rem;
+    height: 1.125rem;
+    margin-right: 0.5rem;
+    background: var(--no-camera-icon) center / contain no-repeat;
+}
+[data-state="recording-forbidden"]::after {
+    content: "This session is not recorded.";
+    min-width: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    order: 1;
+    grid-column: 2;
+    align-self: stretch;
+    justify-self: end;
+}
+
+@media (max-width: 44rem) {
+    body > header { margin-bottom: 1.5rem; }
+    header [data-field="timezone"] { flex-basis: 100%; margin-left: 0; }
+    header nav [data-group]::before { flex-basis: 100%; }
+    main > section[data-day] > [data-rel="sessions"], main > [data-rel="speakers"] {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    article dl:not([data-field="public-answers"]) > div { grid-template-columns: 5rem minmax(0, 1fr); }
+    [data-rel="occurrences"] dl:not([data-field="public-answers"]) > div {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+    article[data-kind="session"] > [data-field="image"] img { max-width: min(10rem, 100%); max-height: 10rem; }
+    article[data-kind="session"][data-view="detail"] > [data-field="image"] {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+    article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
+        grid-column: 1 / -1;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 24rem) {
+    article[data-kind="session"][data-view="detail"] { grid-template-columns: minmax(0, 1fr) 8.25rem; }
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] { width: 8.25rem; flex-direction: column; justify-content: center; }
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"]::before { flex-basis: auto; width: 1.125rem; margin: 0 0 0.375rem; }
+}
+
+@media print {
+    html, body { background: #fff; color: #000; }
+    body { max-width: none; padding: 0; font-size: 10pt; }
+    header [data-field="event"] { font-size: 36pt; color: #000; }
+    main > section[data-day] > [data-rel="sessions"], main > [data-rel="speakers"] { display: block; }
+    article[data-kind][data-view], article[data-kind="break"] { border-color: #000; background: #fff; color: #000; break-inside: avoid; margin-bottom: 1rem; }
+    a, article[data-view="summary"] > :is(h2, h3, h4, h5, h6), article[data-view="detail"] > h1 { color: #000; }
+    [data-tag], [data-state="recording-forbidden"] { print-color-adjust: exact; border: 0; }
+}
+
+/* A shared row for session, day and speaker links, without visible group labels. */
+@media screen {
+    header nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.75rem 0.5rem;
+    }
+
+    header nav [data-group] {
+        flex-basis: 100%;
+    }
+
+    header nav :is([data-group="sessions"], [data-group="days"], [data-group="speakers"]) {
+        display: contents;
+    }
+
+    header nav [data-group]::before {
+        content: none;
+    }
+
+    header nav li {
+        margin: 0;
+        list-style: none;
+    }
+}
+
+/* Summary captions stay available to assistive technology without taking space. */
+article[data-view="summary"] dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+article[data-view="summary"] dl:not([data-field="public-answers"]) > div {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+article[data-view="summary"] [data-rel]::before,
+article[data-view="summary"] [data-field="recording"]::before {
+    content: none;
+}
+
+/* Clamp each prose field on summary cards, including cards within detail pages. */
+article[data-view="summary"] > :is([data-field="abstract"], [data-field="description"], [data-field="biography"]) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    max-height: 4.8em;
+    line-height: 1.6;
+    flex-shrink: 0;
+}
+
+article[data-view="summary"] > :is([data-field="abstract"], [data-field="description"], [data-field="biography"]) > :is(p, ul, ol, blockquote) {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* A compact timing row on summary cards; the full timestamp stays in the HTML. */
+article[data-view="summary"] dl:has(> [data-field="start"]) {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+article[data-view="summary"] dl:has(> [data-field="start"]) > div {
+    display: block;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+article[data-view="summary"] dl:has(> [data-field="start"]) > [data-field="end"] {
+    display: block;
+    margin-left: -0.5rem;
+}
+
+article[data-view="summary"] :is([data-field="start"], [data-field="end"]) time {
+    display: inline-flex;
+    justify-content: flex-end;
+    width: 5ch;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+article[data-view="summary"] dl:has(> [data-field="start"]) > :is([data-field="duration"], [data-field="room"]) dd::before {
+    content: "·";
+    margin-right: 0.5rem;
+}
+
+article[data-view="summary"] dl:has(> [data-field="start"]) > [data-field="room"] {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+article[data-view="summary"] dl:has(> [data-field="start"]) > [data-field="room"] dd {
+    white-space: nowrap;
+}
+
+/* Detail occurrence rows use the same compact timing as summary cards. */
+article[data-view="detail"] > [data-rel="occurrences"] dl {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > div {
+    display: block;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] {
+    display: block;
+    margin-left: -0.5rem;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] :is([data-field="start"], [data-field="end"]) time {
+    display: inline-flex;
+    justify-content: flex-end;
+    width: 5ch;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] :is([data-field="duration"], [data-field="room"]) dd::before {
+    content: "·";
+    margin-right: 0.5rem;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] dd {
+    white-space: nowrap;
+}
+
+/* Keep the timing readable when the notice cannot fit beside it. */
+@media (max-width: 44rem) {
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) > [data-rel="occurrences"] {
+        grid-column: 1 / -1;
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+        grid-column: 1 / -1;
+        justify-self: start;
+        align-self: start;
+        width: 10.5rem;
+        flex-direction: row;
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"]::before {
+        flex: 0 0 1.125rem;
+        height: 1.125rem;
+        margin: 0 0.5rem 0 0;
+    }
+}
+
+/* The adjacent shortened timestamps read as one time range. */
+article[data-view="summary"] [data-field="end"] dd,
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] dd {
+    white-space: nowrap;
+}
+
+article[data-view="summary"] [data-field="end"] dd::before,
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] dd::before {
+    content: "\2013";
+}
+
+/* Speaker summary session lists contain just a linked title and full start date/time. */
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] {
+    gap: 0.625rem;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > a {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl > div:not([data-field="start"]) {
+    display: none;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl [data-field="start"] time {
+    display: inline;
+    width: auto;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+/* Separate filled timing and room boxes inside each existing occurrence. */
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"] {
+    padding: 0;
+    background: transparent;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl {
+    --room-box-width: 10.5rem;
+    position: relative;
+    isolation: isolate;
+    min-height: 3.275rem;
+    align-items: center;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0 calc(var(--room-box-width) + 0.5rem) 0 0;
+    background: var(--primary);
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="start"] {
+    padding-left: 1rem;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > [data-field="room"] {
+    display: flex;
+    align-self: stretch;
+    flex: 0 0 var(--room-box-width);
+    margin-left: auto;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] dd {
+    display: flex;
+    width: 100%;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] dd::before {
+    content: none;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 3.275rem;
+    border: 0;
+    padding: 0.5rem 0.625rem;
+    background: var(--sage);
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a:is(:hover, :focus-visible) {
+    background: var(--primary);
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+@media (max-width: 44rem) {
+    article[data-view="detail"] > [data-rel="occurrences"] dl {
+        --room-box-width: 6.25rem;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="start"] {
+        padding-left: 0.625rem;
+    }
+}
+
+/* Align the compact event metadata to the same right edge. */
+header > dl {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+}
+
+header > dl > div {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+header [data-field="schedule-version"] {
+    padding: 0.25rem 0.5rem;
+}
+
+header [data-field="timezone"] {
+    flex-basis: auto;
+    margin-left: 0;
+}
+
+/* Compact language and track boxes on the submission page. */
+article[data-kind="session"][data-view="detail"] {
+    --session-box-size: 3.8rem;
+    grid-template-columns: minmax(0, 1fr) var(--session-box-size);
+}
+
+article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) {
+    grid-template-columns: minmax(0, 1fr) var(--session-box-size) 13rem;
+}
+
+article[data-kind="session"][data-view="detail"] > dl:has(> [data-field="language"]) {
+    display: contents;
+}
+
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"] {
+    grid-column: 1;
+}
+
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    grid-column: 3;
+    align-self: start;
+    min-height: var(--session-box-size);
+}
+
+article[data-kind="session"][data-view="detail"] > dl > :is([data-field="language"], [data-field="track"]) {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > :is([data-field="language"], [data-field="track"]) > dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-column: 2;
+    order: 1;
+    align-self: start;
+    width: var(--session-box-size);
+    height: var(--session-box-size);
+    place-items: center;
+    background: var(--sage);
+    color: var(--ink);
+    font-weight: 700;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data {
+    font-size: 0;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data::after {
+    content: attr(value);
+    display: inline-block;
+    max-width: 2ch;
+    overflow: hidden;
+    vertical-align: middle;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="track"] {
+    display: block;
+    grid-column: 1 / -1;
+    order: 2;
+    justify-self: start;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="track"] a {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    min-height: var(--session-box-size);
+    border: 0;
+    padding: 0.5rem 1rem;
+    background: var(--track-color, var(--primary));
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="track"] a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+}
+
+@media (max-width: 56rem) {
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) {
+        grid-template-columns: minmax(0, 1fr) var(--session-box-size);
+    }
+
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) > [data-rel="occurrences"] {
+        grid-column: 1;
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+}
+
+@media (max-width: 36rem) {
+    article[data-kind="session"][data-view="detail"],
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) {
+        grid-template-columns: var(--session-box-size) minmax(0, 1fr);
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"],
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) > [data-rel="occurrences"] {
+        grid-column: 1 / -1;
+    }
+
+    article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] {
+        grid-column: 1;
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+        grid-column: 2;
+    }
+}
+
+/* Metadata boxes use the same text size as the session and speaker prose. */
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"],
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a,
+article[data-kind="session"][data-view="detail"] > dl > [data-field="track"] a,
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data::after,
+[data-state="recording-forbidden"]::after,
+[data-tag] {
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl,
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a {
+    min-height: var(--session-box-size, 3.8rem);
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > div > dd {
+    display: flex;
+    align-items: center;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] > dd,
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data::after {
+    display: block;
+}
+
+[data-state="recording-forbidden"],
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    width: 13rem;
+    min-height: 3.8rem;
+    align-items: center;
+}
+
+/* Summary cards show the track as a filled box, without the content language. */
+article[data-kind="session"][data-view="summary"] > dl > [data-field="language"] {
+    display: none;
+}
+
+article[data-kind="session"][data-view="summary"] > dl > [data-field="track"] {
+    display: block;
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+article[data-kind="session"][data-view="summary"] > dl > [data-field="track"] a {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 3.8rem;
+    border: 0;
+    padding: 0.5rem 1rem;
+    background: var(--track-color, var(--primary));
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+article[data-kind="session"][data-view="summary"] > dl > [data-field="track"] a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+}
+
+@media (max-width: 44rem) {
+    article[data-view="detail"] > [data-rel="occurrences"] dl {
+        --room-box-width: 5.5rem;
+        gap: 0.25rem;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+        right: calc(var(--room-box-width) + 0.25rem);
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="start"] {
+        padding-left: 0.5rem;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] {
+        margin-left: -0.25rem;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] dd {
+        white-space: normal;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a {
+        text-align: center;
+    }
+}
+
+/* Keep full-size text readable on the narrowest screens. */
+@media (max-width: 23rem) {
+    article[data-view="detail"] > [data-rel="occurrences"] dl {
+        display: grid;
+        grid-template-columns: max-content max-content minmax(0, 1fr);
+        gap: 0.5rem 0;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+        inset: 0 0 auto;
+        height: var(--session-box-size);
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl > div {
+        display: flex;
+        align-items: center;
+        min-height: var(--session-box-size);
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] {
+        margin-left: 0;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] [data-field="duration"] {
+        padding-left: 0.25rem;
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl > [data-field="room"] {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-left: 0;
+    }
+
+    article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Shared box-label typography, matching the navigation. */
+:root {
+    --box-font-size: 1.6rem;
+    --box-line-height: 1.1;
+}
+
+header nav a,
+header [data-field="schedule-version"],
+main > section[data-day] > h2,
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6),
+article[data-kind="break"] > :is(h2, h3, h4, h5, h6),
+article[data-kind="session"][data-view="detail"] > [data-rel="occurrences"],
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a,
+article[data-kind="session"][data-view] > dl > [data-field="track"] a,
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data::after,
+[data-state="recording-forbidden"]::after,
+[data-tag] {
+    font-family: var(--heading-font);
+    font-size: var(--box-font-size);
+    font-weight: 400;
+    line-height: var(--box-line-height);
+}
+
+header [data-field="schedule-version"] {
+    align-items: center;
+}
+
+article[data-kind="session"][data-view="detail"] {
+    --session-box-size: 4.6rem;
+}
+
+article[data-kind="session"][data-view] > dl > [data-field="track"] a,
+[data-state="recording-forbidden"],
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    min-height: 4.6rem;
+}
+
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] data::after {
+    max-width: none;
+}
+
+/* Styleguide page 9, Nice Title 1: paper, dark text and a two-pixel outline. */
+article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+    border: var(--box-border-width) solid var(--ink);
+    background: var(--paper);
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a,
+article[data-kind="session"][data-view="detail"] > dl > [data-field="language"] {
+    border: var(--box-border-width) solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a:is(:hover, :focus-visible) {
+    border: 0;
+    padding: calc(0.5rem + var(--box-border-width)) calc(0.625rem + var(--box-border-width));
+    background: var(--primary);
+    color: var(--ink);
+}
+
+/* Read hours and minutes from the existing datetime attributes.
+   Unlike text clipping, these labels also work with proportional digits. */
+time[datetime*="T00:"] { --time-hour: "00"; }
+time[datetime*="T01:"] { --time-hour: "01"; }
+time[datetime*="T02:"] { --time-hour: "02"; }
+time[datetime*="T03:"] { --time-hour: "03"; }
+time[datetime*="T04:"] { --time-hour: "04"; }
+time[datetime*="T05:"] { --time-hour: "05"; }
+time[datetime*="T06:"] { --time-hour: "06"; }
+time[datetime*="T07:"] { --time-hour: "07"; }
+time[datetime*="T08:"] { --time-hour: "08"; }
+time[datetime*="T09:"] { --time-hour: "09"; }
+time[datetime*="T10:"] { --time-hour: "10"; }
+time[datetime*="T11:"] { --time-hour: "11"; }
+time[datetime*="T12:"] { --time-hour: "12"; }
+time[datetime*="T13:"] { --time-hour: "13"; }
+time[datetime*="T14:"] { --time-hour: "14"; }
+time[datetime*="T15:"] { --time-hour: "15"; }
+time[datetime*="T16:"] { --time-hour: "16"; }
+time[datetime*="T17:"] { --time-hour: "17"; }
+time[datetime*="T18:"] { --time-hour: "18"; }
+time[datetime*="T19:"] { --time-hour: "19"; }
+time[datetime*="T20:"] { --time-hour: "20"; }
+time[datetime*="T21:"] { --time-hour: "21"; }
+time[datetime*="T22:"] { --time-hour: "22"; }
+time[datetime*="T23:"] { --time-hour: "23"; }
+time[datetime*=":00:"] { --time-minute: "00"; }
+time[datetime*=":01:"] { --time-minute: "01"; }
+time[datetime*=":02:"] { --time-minute: "02"; }
+time[datetime*=":03:"] { --time-minute: "03"; }
+time[datetime*=":04:"] { --time-minute: "04"; }
+time[datetime*=":05:"] { --time-minute: "05"; }
+time[datetime*=":06:"] { --time-minute: "06"; }
+time[datetime*=":07:"] { --time-minute: "07"; }
+time[datetime*=":08:"] { --time-minute: "08"; }
+time[datetime*=":09:"] { --time-minute: "09"; }
+time[datetime*=":10:"] { --time-minute: "10"; }
+time[datetime*=":11:"] { --time-minute: "11"; }
+time[datetime*=":12:"] { --time-minute: "12"; }
+time[datetime*=":13:"] { --time-minute: "13"; }
+time[datetime*=":14:"] { --time-minute: "14"; }
+time[datetime*=":15:"] { --time-minute: "15"; }
+time[datetime*=":16:"] { --time-minute: "16"; }
+time[datetime*=":17:"] { --time-minute: "17"; }
+time[datetime*=":18:"] { --time-minute: "18"; }
+time[datetime*=":19:"] { --time-minute: "19"; }
+time[datetime*=":20:"] { --time-minute: "20"; }
+time[datetime*=":21:"] { --time-minute: "21"; }
+time[datetime*=":22:"] { --time-minute: "22"; }
+time[datetime*=":23:"] { --time-minute: "23"; }
+time[datetime*=":24:"] { --time-minute: "24"; }
+time[datetime*=":25:"] { --time-minute: "25"; }
+time[datetime*=":26:"] { --time-minute: "26"; }
+time[datetime*=":27:"] { --time-minute: "27"; }
+time[datetime*=":28:"] { --time-minute: "28"; }
+time[datetime*=":29:"] { --time-minute: "29"; }
+time[datetime*=":30:"] { --time-minute: "30"; }
+time[datetime*=":31:"] { --time-minute: "31"; }
+time[datetime*=":32:"] { --time-minute: "32"; }
+time[datetime*=":33:"] { --time-minute: "33"; }
+time[datetime*=":34:"] { --time-minute: "34"; }
+time[datetime*=":35:"] { --time-minute: "35"; }
+time[datetime*=":36:"] { --time-minute: "36"; }
+time[datetime*=":37:"] { --time-minute: "37"; }
+time[datetime*=":38:"] { --time-minute: "38"; }
+time[datetime*=":39:"] { --time-minute: "39"; }
+time[datetime*=":40:"] { --time-minute: "40"; }
+time[datetime*=":41:"] { --time-minute: "41"; }
+time[datetime*=":42:"] { --time-minute: "42"; }
+time[datetime*=":43:"] { --time-minute: "43"; }
+time[datetime*=":44:"] { --time-minute: "44"; }
+time[datetime*=":45:"] { --time-minute: "45"; }
+time[datetime*=":46:"] { --time-minute: "46"; }
+time[datetime*=":47:"] { --time-minute: "47"; }
+time[datetime*=":48:"] { --time-minute: "48"; }
+time[datetime*=":49:"] { --time-minute: "49"; }
+time[datetime*=":50:"] { --time-minute: "50"; }
+time[datetime*=":51:"] { --time-minute: "51"; }
+time[datetime*=":52:"] { --time-minute: "52"; }
+time[datetime*=":53:"] { --time-minute: "53"; }
+time[datetime*=":54:"] { --time-minute: "54"; }
+time[datetime*=":55:"] { --time-minute: "55"; }
+time[datetime*=":56:"] { --time-minute: "56"; }
+time[datetime*=":57:"] { --time-minute: "57"; }
+time[datetime*=":58:"] { --time-minute: "58"; }
+time[datetime*=":59:"] { --time-minute: "59"; }
+
+article[data-view="detail"] > [data-rel="occurrences"] :is([data-field="start"], [data-field="end"]) time {
+    width: auto;
+    font-size: 0;
+    line-height: 0;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] :is([data-field="start"], [data-field="end"]) time::after {
+    content: var(--time-hour) ":" var(--time-minute);
+    font-size: var(--box-font-size);
+    line-height: var(--box-line-height);
+}
+
+/* Keep the full start date/time; separate the shortened end time with spaces. */
+article[data-kind="session"][data-view="summary"] > dl:has(> [data-field="start"]) {
+    display: block;
+}
+
+article[data-kind="session"][data-view="summary"] > dl:has(> [data-field="start"]) > div,
+article[data-kind="session"][data-view="summary"] > dl:has(> [data-field="start"]) > div > dd {
+    display: inline;
+    margin: 0;
+}
+
+article[data-kind="session"][data-view="summary"] [data-field="start"] time {
+    display: inline;
+    width: auto;
+    overflow: visible;
+    white-space: normal;
+    vertical-align: baseline;
+}
+
+article[data-kind="session"][data-view="summary"] [data-field="end"] dd::before,
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="end"] dd::before {
+    content: "\00a0\2013\00a0";
+}
+
+/* Inline time fields wrap together inside the outlined time box. */
+article[data-view="detail"] > [data-rel="occurrences"] dl {
+    display: block;
+    min-height: var(--session-box-size);
+    padding: 0.5rem calc(var(--room-box-width) + 1.5rem) 0.5rem 1rem;
+    align-content: center;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+    inset: 0 calc(var(--room-box-width) + 0.5rem) 0 0;
+    height: auto;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > div,
+article[data-view="detail"] > [data-rel="occurrences"] dl > div > dd {
+    display: inline;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] :is([data-field="start"], [data-field="end"]) time {
+    display: inline;
+    overflow: visible;
+    vertical-align: baseline;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="start"] time {
+    font-size: inherit;
+    line-height: inherit;
+    white-space: normal;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="start"] time::after {
+    content: none;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > [data-field="room"] {
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: flex;
+    width: var(--room-box-width);
+    height: 100%;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > [data-field="room"] > dd {
+    display: flex;
+    width: 100%;
+}
+
+/* Give the full date space above the room on small screens. */
+@media (max-width: 36rem) {
+    article[data-view="detail"] > [data-rel="occurrences"] dl {
+        min-height: calc(2 * var(--session-box-size) + 0.5rem);
+        padding: 0.5rem 1rem calc(var(--session-box-size) + 1rem);
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl::before {
+        inset: 0 0 calc(var(--session-box-size) + 0.5rem);
+    }
+
+    article[data-view="detail"] > [data-rel="occurrences"] dl > [data-field="room"] {
+        inset: auto 0 0;
+        width: 100%;
+        height: var(--session-box-size);
+    }
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] dl > :is([data-field="start"], [data-field="end"], [data-field="duration"]) {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+article[data-view="detail"] > [data-rel="occurrences"] [data-field="room"] a {
+    height: 100%;
+}
+
+/* Styleguide infotext: regular body type with a larger, centered camera icon. */
+[data-state="recording-forbidden"]::after {
+    font-family: var(--body-font);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+[data-state="recording-forbidden"]::before,
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"]::before {
+    flex: 0 0 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0 0.5rem 0 0;
+}
+
+/* Match the navigation height while keeping the metadata row aligned. */
+:root {
+    --navigation-box-height: calc(var(--box-font-size) * var(--box-line-height) + 0.8rem + 2 * var(--box-border-width));
+}
+
+article[data-kind="session"][data-view="detail"] {
+    --session-box-size: var(--navigation-box-height);
+}
+
+article[data-kind="session"][data-view] > dl > [data-field="track"] a,
+[data-state="recording-forbidden"],
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    min-height: var(--navigation-box-height);
+}
+
+[data-state="recording-forbidden"],
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"] {
+    height: var(--navigation-box-height);
+    margin: 0;
+    padding: 0.125rem 0.375rem;
+}
+
+[data-state="recording-forbidden"]::after {
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+[data-state="recording-forbidden"]::before,
+article[data-kind="session"][data-view="detail"] > [data-state="recording-forbidden"]::before {
+    margin-right: 0.375rem;
+}
+
+/* Point-based type scale shared by every page. */
+:root {
+    --text-normal: 16pt;
+    --text-small: 10pt;
+    --text-heading: 24pt;
+    --text-title: 48pt;
+    --text-recording-notice: 9pt;
+    --heading-line-height: 1.1;
+    --box-font-size: var(--text-heading);
+    --box-line-height: var(--heading-line-height);
+}
+
+body,
+article[data-view="summary"],
+article[data-kind="break"],
+article[data-view="summary"] dl,
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"],
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li {
+    font-size: var(--text-normal);
+}
+
+h1, h2, h3, h4, h5, h6,
+article[data-view="detail"] > h1,
+main > section[data-day] > h2,
+article[data-view="summary"] > :is(h2, h3, h4, h5, h6),
+article[data-kind="break"] > :is(h2, h3, h4, h5, h6),
+article > [data-rel]::before,
+article > [data-field="recording"]::before {
+    font-family: var(--heading-font);
+    font-size: var(--text-heading);
+    font-weight: 400;
+    line-height: var(--heading-line-height);
+}
+
+header [data-field="event"] {
+    font-size: var(--text-title);
+    line-height: var(--heading-line-height);
+}
+
+header > dl,
+header [data-field="schedule-version"],
+header [data-field="timezone"],
+body > footer,
+article[data-view="summary"] > :is([data-field="abstract"], [data-field="description"], [data-field="biography"]) {
+    font-size: var(--text-small);
+}
+
+header [data-field="schedule-version"] {
+    font-family: var(--body-font);
+    line-height: 1.4;
+}
+
+[data-state="recording-forbidden"]::after {
+    font-size: var(--text-recording-notice);
+}
+
+/* Full dates can wrap when a speaker's session list is narrow. */
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > a {
+    flex-basis: 10ch;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl {
+    max-width: 100%;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl > [data-field="start"] {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-rel="sessions"] > li > dl [data-field="start"] time {
+    white-space: normal;
+}
+
+/* All summary-card text is small; the track retains the shared track-box style. */
+article[data-view="summary"] {
+    --text-normal: var(--text-small);
+    font-size: var(--text-small);
+}
+
+article[data-kind][data-view="summary"] :is(h1, h2, h3, h4, h5, h6),
+article[data-view="summary"] [data-tag],
+article[data-view="summary"] [data-field="size"] {
+    font-family: var(--body-font);
+    font-size: var(--text-small);
+    line-height: 1.6;
+}
+
+article[data-kind][data-view="summary"] > :is(h2, h3, h4, h5, h6) {
+    font-weight: 700;
+}
+
+/* Put the optional recording icon directly beside the track, using existing markup. */
+article[data-kind="session"][data-view="summary"] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    column-gap: 0.5rem;
+}
+
+article[data-kind="session"][data-view="summary"] > * {
+    flex: 0 0 100%;
+}
+
+article[data-kind="session"][data-view="summary"] > :is(h2, h3, h4, h5, h6) {
+    flex-basis: calc(100% + 2.2rem);
+}
+
+article[data-kind="session"][data-view="summary"] > dl:has(> [data-field="track"]) {
+    flex: 0 1 auto;
+    margin: 0;
+}
+
+article[data-kind="session"][data-view="summary"]:has(> [data-state="recording-forbidden"]) > dl:has(> [data-field="track"]) {
+    max-width: calc(100% - var(--navigation-box-height) - 0.5rem);
+}
+
+article[data-kind="session"][data-view="summary"] > dl > [data-field="track"] a {
+    max-width: 100%;
+}
+
+article[data-kind="session"][data-view="summary"] > [data-state="recording-forbidden"] {
+    order: 4;
+    flex: 0 0 var(--navigation-box-height);
+    width: var(--navigation-box-height);
+    height: var(--navigation-box-height);
+    min-height: var(--navigation-box-height);
+    align-self: flex-start;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+article[data-kind="session"][data-view="summary"] > [data-state="recording-forbidden"]::after {
+    content: none;
+}
+
+article[data-kind="session"][data-view="summary"] > [data-state="recording-forbidden"]::before {
+    margin: 0;
+}
+
+/* Summary titles match the complete navigation and track-box type style. */
+article[data-kind][data-view="summary"] > :is(h2, h3, h4, h5, h6) {
+    font-family: var(--heading-font);
+    font-size: var(--box-font-size);
+    font-weight: 400;
+    line-height: var(--box-line-height);
+}
+
+/* The active navigation box supplies the visible listing title. */
+body:has(> header nav [aria-current="page"]) > main > h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Use the 40C3 primary green; exported track colors remain intact. */
+:root { --color-primary: #75b54b; }
+
+/* The exported pale logo needs a dark rendering on the light interface. */
+header [data-field="event"] {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+header [data-field="event"] img {
+    width: auto;
+    max-width: min(12rem, 45vw);
+    max-height: 6rem;
+    filter: brightness(0);
+}
+
+/* Keep session images independent of the compact language-column width. */
+article[data-kind="session"][data-view="detail"] {
+    --session-image-width: 12rem;
+    --image-column-width: var(--session-box-size);
+}
+
+article[data-kind="session"][data-view="detail"] > [data-field="image"] {
+    grid-column: -2 / -1;
+    width: max-content;
+    max-width: var(--session-image-width);
+    margin: 0;
+    justify-self: end;
+}
+
+article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
+    grid-column: 1 / -2;
+    margin-right: max(1.5rem, calc(var(--session-image-width) + 1.5rem - var(--image-column-width)));
+}
+
+article[data-kind="session"][data-view="summary"] > [data-field="image"] {
+    flex: 0 1 auto;
+    margin-top: 0.5rem;
+    margin-left: auto;
+}
+
+@media (min-width: 56.001rem) {
+    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) {
+        --image-column-width: 13rem;
+    }
+}
+
+@media (max-width: 44rem) {
+    article[data-kind="session"][data-view="detail"] > [data-field="image"] {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        max-width: 10rem;
+    }
+
+    article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
+        grid-column: 1 / -1;
+        margin-right: 0;
+    }
+}

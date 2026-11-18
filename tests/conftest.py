@@ -92,6 +92,22 @@ def day_files(event):
 
 
 @pytest.fixture
+def stylesheet_files():
+    return [
+        "assets/schedule.css",
+        "assets/variables.css",
+        "assets/fonts/jersey-10-latin-ext-400-normal.woff2",
+        "assets/fonts/jersey-10-latin-400-normal.woff2",
+        "assets/fonts/jersey-10_License.txt",
+        "assets/fonts/Hack-Regular.woff2",
+        "assets/fonts/Hack-Bold.woff2",
+        "assets/fonts/Hack-Italic.woff2",
+        "assets/fonts/Hack-BoldItalic.woff2",
+        "assets/fonts/Hack-License.txt",
+    ]
+
+
+@pytest.fixture
 def published_talk_slot(event):
     with scopes_disabled():
         speaker = SpeakerProfile.objects.create(

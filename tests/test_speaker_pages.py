@@ -146,7 +146,7 @@ def test_speaker_pages_use_only_current_published_sessions(
 
 
 def test_empty_schedule_has_no_individual_speaker_pages(
-    published_schedule, event, day_files
+    published_schedule, event, day_files, stylesheet_files
 ):
     with scope(event=event):
         SpeakerProfile.objects.create(event=event, name="Unused speaker")
@@ -155,8 +155,7 @@ def test_empty_schedule_has_no_individual_speaker_pages(
     assert set(files) == {
         "index.html",
         "speakers/index.html",
-        "assets/schedule.css",
-        "assets/variables.css",
+        *stylesheet_files,
         *day_files,
     }
     overview = BeautifulSoup(files["speakers/index.html"], "html.parser")

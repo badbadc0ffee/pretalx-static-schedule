@@ -15,7 +15,12 @@ pytestmark = pytest.mark.django_db
 
 
 def test_zip_download_from_organiser_interface(
-    published_talk_slot, published_speaker, event, orga_client, day_files
+    published_talk_slot,
+    published_speaker,
+    event,
+    orga_client,
+    day_files,
+    stylesheet_files,
 ):
     exporter = StaticScheduleExporter(event)
     listing = orga_client.get(event.orga_urls.schedule_export)
@@ -44,8 +49,7 @@ def test_zip_download_from_organiser_interface(
             f"rooms/{published_talk_slot.room_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
-            "assets/schedule.css",
-            "assets/variables.css",
+            *stylesheet_files,
         }
         page = BeautifulSoup(archive.read("index.html"), "html.parser")
         assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
@@ -89,7 +93,7 @@ def test_api_rejects_non_current_schedules(
 
 
 def test_download_uses_the_latest_published_schedule(
-    published_talk_slot, event, orga_client, day_files
+    published_talk_slot, event, orga_client, day_files, stylesheet_files
 ):
     with scope(event=event):
         event.wip_schedule.talks.update(room=None)
@@ -104,8 +108,7 @@ def test_download_uses_the_latest_published_schedule(
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
-            "assets/schedule.css",
-            "assets/variables.css",
+            *stylesheet_files,
         }
         html = archive.read("index.html").decode("utf-8")
         page = BeautifulSoup(html, "html.parser")

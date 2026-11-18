@@ -65,7 +65,7 @@ def test_original_variables_stylesheet_is_exported_with_event_overrides(
         ("#777777", "var(--color-text)"),
     ),
 )
-def test_pages_use_the_event_color(
+def test_event_color_variables_are_exported(
     published_talk_slot, event, color, foreground, settings, client
 ):
     with scope(event=event):

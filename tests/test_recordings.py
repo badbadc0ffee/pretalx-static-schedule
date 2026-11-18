@@ -163,6 +163,7 @@ def test_local_recording_stays_external_in_any_directory(
     media_url,
     custom_domain,
     day_files,
+    stylesheet_files,
 ):
     settings.MEDIA_URL = media_url
     with scope(event=event):
@@ -195,8 +196,7 @@ def test_local_recording_stays_external_in_any_directory(
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
-            "assets/schedule.css",
-            "assets/variables.css",
+            *stylesheet_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }
@@ -293,7 +293,12 @@ def test_relative_provider_links_use_the_original_page_as_base(
 
 
 def test_recording_link_does_not_require_the_file_to_be_available(
-    published_talk_slot, published_speaker, event, recording_provider, day_files
+    published_talk_slot,
+    published_speaker,
+    event,
+    recording_provider,
+    day_files,
+    stylesheet_files,
 ):
     url = default_storage.url("recordings/unavailable.mp4")
     recording_provider(f'<video src="{url}"></video>')
@@ -306,8 +311,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
         *day_files,
-        "assets/schedule.css",
-        "assets/variables.css",
+        *stylesheet_files,
         "sessions/TOOLS01.html",
         "speakers/ADA0001.html",
     }
@@ -324,6 +328,7 @@ def test_organiser_download_includes_only_current_session_recordings(
     recording_provider,
     orga_client,
     day_files,
+    stylesheet_files,
 ):
     seen = recording_provider(
         '<iframe src="https://video.example.org/current"></iframe>'
@@ -373,8 +378,7 @@ def test_organiser_download_includes_only_current_session_recordings(
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
-            "assets/schedule.css",
-            "assets/variables.css",
+            *stylesheet_files,
             "sessions/CURRENT1.html",
             "speakers/ADA0001.html",
         }
@@ -394,6 +398,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
     orga_client,
     settings,
     day_files,
+    stylesheet_files,
 ):
     settings.STORAGES = {
         **settings.STORAGES,
@@ -414,8 +419,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
-            "assets/schedule.css",
-            "assets/variables.css",
+            *stylesheet_files,
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
         }

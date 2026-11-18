@@ -331,6 +331,7 @@ def test_remote_plugin_images_become_links(
     register_signal_handler,
     label,
     day_files,
+    stylesheet_files,
 ):
     def handler(signal, sender, **kwargs):
         return (
@@ -352,8 +353,7 @@ def test_remote_plugin_images_become_links(
         *day_files,
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
-        "assets/schedule.css",
-        "assets/variables.css",
+        *stylesheet_files,
         "sessions/TOOLS01.html",
         "speakers/ADA0001.html",
     }
@@ -407,7 +407,7 @@ def test_only_enabled_plugins_add_session_information(
 
 
 def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
-    published_talk_slot, event, register_signal_handler, day_files
+    published_talk_slot, event, register_signal_handler, day_files, stylesheet_files
 ):
     seen = []
 
@@ -429,8 +429,7 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
         "speakers/index.html",
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
-        "assets/schedule.css",
-        "assets/variables.css",
+        *stylesheet_files,
         *day_files,
     }
     page = BeautifulSoup(files["index.html"], "html.parser")

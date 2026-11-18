@@ -31,13 +31,14 @@ from pretalx_static_schedule.exporter import StaticScheduleExporter
 pytestmark = pytest.mark.django_db
 
 
-def test_empty_published_schedule(published_schedule, event, day_files):
+def test_empty_published_schedule(
+    published_schedule, event, day_files, stylesheet_files
+):
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
     assert list(files) == [
-        "assets/schedule.css",
-        "assets/variables.css",
+        *stylesheet_files,
         "index.html",
         *day_files,
         "speakers/index.html",
