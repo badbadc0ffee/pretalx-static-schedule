@@ -32,7 +32,7 @@
                 {% endfor %}
             </ul>
         {% endtimezone %}
-        <p><strong>{% translate "Language:" %}</strong> {{ submission.get_content_locale_display }}</p>
+        <p><strong>{% translate "Language:" %}</strong> {{ session.language_name }}</p>
         {% if submission.track %}
             <p class="track">
                 <strong>{% translate "Track" %}:</strong> <a

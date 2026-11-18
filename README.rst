@@ -3,6 +3,8 @@ pretalx-static-schedule
 
 Exports the latest published pretalx schedule as static HTML pages in one ZIP
 archive. The pages work without JavaScript or a running pretalx server.
+Generated interface text and date formatting use English. Speaker and
+submission content is rendered in its supplied language.
 
 Installation
 ------------
@@ -123,6 +125,12 @@ shared navigation template. For example, add this to your override of ``schedule
         {{ block.super }}
         <p>Welcome to {{ event.name }}.</p>
     {% endblock %}
+
+Templates receive ``metadata`` with event and export information and ``page``
+with the current view's prepared data. Page data includes semantic attributes,
+navigation destinations, grouped session occurrences or speaker entries, and
+related summaries or references. Relationship lists omit a sole reference
+back to their parent entity; top-level lists include every published entry.
 
 The ``speaker_summary.html`` template is shared by session pages and the
 speaker overview. It includes ``speaker_info.html``, which is also used on

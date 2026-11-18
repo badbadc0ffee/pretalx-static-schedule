@@ -29,7 +29,7 @@ def text(node):
 
 
 @pytest.mark.parametrize("language", ("en", "de"))
-def test_export_language_matches_the_online_page(
+def test_export_is_english_regardless_of_the_online_page_language(
     published_talk_slot, event, client, language
 ):
     with scope(event=event):
@@ -48,8 +48,8 @@ def test_export_language_matches_the_online_page(
 
     for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         page = BeautifulSoup(files[name].decode("utf-8"), "html.parser")
-        assert page.html["lang"] == online.html["lang"]
-        assert online.header.h1.get_text(strip=True) in page.header.get_text()
+        assert page.html["lang"] == "en"
+        assert "Fancy testevent" in page.header.get_text()
 
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))

@@ -236,7 +236,7 @@ def test_language_and_recording_flag(published_talk_slot, event):
 @pytest.mark.parametrize("request_content_locale", (True, False))
 @pytest.mark.parametrize(
     ("content_locales", "content_locale", "language"),
-    ((("en",), "en", "English"), (("en", "de"), "de", "Deutsch")),
+    ((("en",), "en", "English"), (("en", "de"), "de", "German")),
 )
 def test_session_content_language_is_always_exported(
     published_talk_slot,
