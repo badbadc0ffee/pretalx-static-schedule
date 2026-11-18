@@ -75,6 +75,8 @@ date and times, actual duration, room, content language, assigned track and
 public tags. The same component is used on schedule, day, track, room and
 speaker pages. Session details add the full description, every scheduled
 occurrence, public answers, files, recordings and plugin content.
+If a published slot has no end time, pretalx derives it from the submission's
+planned duration or the submission type's default duration.
 
 Overview entries use compact links for related speakers and presentations.
 Session detail pages embed speaker summaries; speaker detail pages embed
@@ -230,6 +232,87 @@ Custom session templates can include plugin content with these tags::
     {% session_content "pretalx.agenda.signals.html_above_session_pages" %}
     {% session_content "pretalx.agenda.signals.html_below_session_pages" %}
 
+Migrating template overrides from 0.0.x
+----------------------------------------
+
+Version 0.1.6 completes the template rewrite. The archive's page routes remain
+the same, but the HTML structure and rendering context have changed. Existing
+template and stylesheet overrides need to be adapted together.
+
+Start with the current ``base.html`` and retain its shared header, navigation,
+main and footer. Move a page's primary heading from an old ``header`` block
+into ``content``. The header now contains the event identity and schedule
+metadata by default. The ``navigation`` block is inside the header; a new
+``footer`` block supplies the source link and exporter version. Use
+``{{ block.super }}`` when extending these defaults.
+
+Use prepared records rather than querying models or constructing relationships
+inside a template:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Previous context or markup
+     - Current equivalent
+   * - ``days`` and each day's ``talks``
+     - ``page.groups`` and each group's ``items``; ``session_groups.html`` renders day headings and chronological lists.
+   * - ``slot.submission`` in a session summary
+     - ``session`` with ``title``, ``abstract``, ``description``, ``image``, ``language``, ``track``, ``tags`` and ``url``.
+   * - ``slot.start``, ``slot.end``, ``slot.duration`` and ``slot.room``
+     - ``session.occurrences.0`` in a summary; ``session.occurrences`` in details. ``occurrence.html`` renders the factual fields.
+   * - ``speaker.profile.get_display_name``, ``speaker.profile.biography`` and ``speaker.profile.avatar``
+     - ``speaker.name``, ``speaker.biography`` and ``speaker.image``. ``speaker.url`` links to its detail page.
+   * - ``speaker.slots`` and model speaker queries
+     - Prepared ``speaker.presentations`` and ``session.speakers``; ``relationship_mode`` distinguishes summaries from compact references.
+   * - ``navigation_days``, global ``tracks`` and ``rooms``
+     - ``page.navigation`` with groups, items, destination filenames, semantic attributes and ``is_current``. Use ``page.track`` or ``page.room`` for the current filtered page.
+   * - ``is_overview``, ``is_speaker_overview`` and ad hoc current-page comparisons
+     - ``page.kind`` and navigation item ``is_current``.
+   * - ``show_date``, ``show_all_sessions`` and ``session_prefix``
+     - Removed. Summaries always contain occurrence dates; relationship omission and URLs are prepared before rendering.
+   * - ``.session``, ``.speaker``, ``.abstract``, ``.room`` and ``.track`` CSS classes
+     - ``article[data-kind="session"]``, ``article[data-kind="speaker"]`` and semantic ``data-field``, ``data-room`` and ``data-track`` attributes.
+   * - ``id="speaker-<code>"``
+     - ``data-speaker="<code>"``. Entities may recur in a document, so entity identity is not a DOM anchor ID.
+
+Use ``session_article.html`` and ``speaker_article.html`` for changes shared by
+summaries and details. Their wrapper templates provide summary inclusion and
+break dispatch. Pass ``heading_level`` when including a summary: a list below
+a page's ``h1`` uses level 2; a list below a day group's ``h2`` uses level 3.
+Detail articles use level 1. Copy the prepared article's ``attributes`` into
+the HTML to retain day, track, room, occurrence and entity hooks.
+
+Overview entries contain compact relationship links. Only detail pages embed
+related summaries, with compact links at the next level. The prepared records
+already implement the sole-parent backlink rule, including repeated occurrences
+of one submission. Rendering a model's complete speaker or submission query
+instead would bypass that rule.
+
+Move inline colors and presentation attributes into external CSS. Event,
+track and public-tag rules belong in ``event_variables.css``; layout and
+captions belong in ``schedule.css``. Replace visible navigation headings and
+metadata labels with semantic attributes, English accessible names and CSS
+captions. Active navigation destinations remain links with
+``aria-current="page"``. Generated interface text is English even when the
+active pretalx locale differs.
+
+Replace ``rich_text_abslinks`` and ``rich_text_without_links`` with
+``schedule_text:heading_level`` for authored content inside an article. On
+page-level descriptions, ``schedule_text`` defaults to a containing heading
+level of 1. It preserves prose, links and escaped code while removing
+presentation attributes and placing authored headings below their container.
+Plugin IDs now have the form ``<session-code>-<location>-<index>``; update CSS
+that depended on their old IDs. Local links within a plugin fragment follow
+the generated IDs automatically.
+
+After restarting pretalx, export a schedule that includes a shared session,
+a speaker with several presentations, a speaker with one presentation,
+repeated occurrences and empty days, tracks and rooms. Check overview and
+detail pages, uploads and links at both a server root and a nested path.
+Compare the same summaries across contexts at a narrow viewport and in print
+preview. Confirm that private answers, files and organiser notes remain absent.
+
 Development checks
 ------------------
 
@@ -253,3 +336,15 @@ Apply formatting::
 Run the same checks as CI, including package checks::
 
     just ci
+
+CI runs the full coverage suite on SQLite and PostgreSQL 16. For PostgreSQL,
+install ``psycopg2-binary`` and configure a local database with permission to
+create the test database. The test job passes ``PRETALX_DB_TYPE=postgresql``
+and ``PRETALX_DB_NAME``, ``PRETALX_DB_USER``, ``PRETALX_DB_PASS`` and
+``PRETALX_DB_HOST`` to ``just test``.
+
+The representative export tests parse every generated page, check heading
+hierarchy and anchor uniqueness, crawl local page and asset references, and
+verify custom CSS selectors for days, rooms, tracks, relationship contexts
+and list positions. They also write default and custom review ZIPs into their
+pytest temporary directories for browser review.

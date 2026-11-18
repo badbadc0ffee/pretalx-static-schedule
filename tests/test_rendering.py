@@ -1,4 +1,6 @@
 import datetime as dt
+from io import BytesIO
+from zipfile import ZipFile
 
 import pytest
 from bs4 import BeautifulSoup
@@ -29,6 +31,57 @@ from pretalx_static_schedule.rendering import (
 )
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.mark.parametrize("duration", (30, None))
+def test_published_slot_without_end_uses_the_planned_duration_in_every_view(
+    published_talk_slot, event, duration
+):
+    with scope(event=event):
+        submission = published_talk_slot.submission
+        submission.duration = duration
+        submission.save(update_fields=["duration"])
+        submission.submission_type.default_duration = 35
+        submission.submission_type.save(update_fields=["default_duration"])
+        event.current_schedule.talks.filter(submission=submission).update(end=None)
+        _, _, archive_data = StaticScheduleExporter(event).render(request=None)
+        assert event.current_schedule.talks.get(submission=submission).end is None
+
+    minutes = 35 if duration is None else duration
+    expected_end = (
+        published_talk_slot.start + dt.timedelta(minutes=minutes)
+    ).astimezone(event.tz)
+    kinds = set()
+    with ZipFile(BytesIO(archive_data)) as archive:
+        assert archive.testzip() is None
+        for filename in archive.namelist():
+            if not filename.endswith(".html"):
+                continue
+            page = BeautifulSoup(archive.read(filename), "html.parser")
+            ends = page.main.select('[data-field="end"] time')
+            if not ends:
+                continue
+            kinds.add(page.main["data-page"])
+            assert all(time["datetime"] == expected_end.isoformat() for time in ends)
+            assert all(
+                time.get_text().endswith(expected_end.strftime("%H:%M"))
+                for time in ends
+            )
+            durations = page.main.select('[data-field="duration"] data')
+            assert len(durations) == len(ends)
+            assert all(
+                value["value"] == f"PT{minutes}M" and value.get_text() == str(minutes)
+                for value in durations
+            )
+    assert kinds == {
+        "sessions",
+        "day",
+        "track",
+        "room",
+        "session",
+        "speaker",
+        "speakers",
+    }
 
 
 @pytest.mark.parametrize(
