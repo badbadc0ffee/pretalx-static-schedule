@@ -31,6 +31,7 @@ def test_navigation_is_consistent_on_every_page(
         "day-navigation": ["index.html", *day_files],
         "track-navigation": [f"tracks/{track.pk}.html" for track in tracks],
         "room-navigation": [f"rooms/{room.pk}.html" for room in rooms],
+        "speaker-navigation": ["speakers/index.html"],
     }
     for name, contents in files.items():
         if not name.endswith(".html"):
@@ -88,9 +89,9 @@ def test_navigation_shows_empty_track_and_room_lists(
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    for name in ("index.html", *day_files):
+    for name in ("index.html", *day_files, "speakers/index.html"):
         page = BeautifulSoup(files[name], "html.parser")
-        assert len(page.select(".schedule-navigation nav")) == 3
+        assert len(page.select(".schedule-navigation nav")) == 4
         assert "No tracks." in page.select_one(".track-navigation").get_text()
         assert "No rooms." in page.select_one(".room-navigation").get_text()
         assert not page.select(".track-navigation a, .room-navigation a")

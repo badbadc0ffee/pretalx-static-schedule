@@ -29,6 +29,7 @@ ZIP contents
 * ``tracks/<id>.html``: one page for each track.
 * ``rooms/<id>.html``: one overview for each room.
 * ``sessions/<code>.html``: session details and public speaker information.
+* ``speakers/index.html``: alphabetical overview of speakers.
 * ``speakers/<code>.html``: speaker pages.
 * ``assets/schedule.css``: stylesheet.
 * ``assets/variables.css``: the original pretalx CSS variables.
@@ -36,11 +37,23 @@ ZIP contents
 
 Speaker pages include the biography, public photo, public answers and files,
 and the speaker's sessions in the exported schedule.
+The speaker overview lists each speaker in the current published schedule
+once, sorted by their full displayed name without regard to case. Each name
+links to the speaker's page. Speakers with identical names have separate
+entries. Each entry uses the same speaker summary as the session pages,
+including the public photo, biography, answers and files. The speaker overview
+lists all of each speaker's published sessions, including speakers with just
+one session. On session pages, the speaker's session list appears only when
+they have more than one distinct session in the published schedule. Repeated
+occurrences of the same session count as one session.
+Schedules without speakers show an empty overview.
 
 Every page has lists of days, tracks and rooms above its session content.
 The current overview is highlighted; the other entries link to their pages.
 The day list includes an "All days" link to the full overview. Lists include
 empty days, tracks and rooms.
+An "All speakers" link appears alongside these lists on every page and is
+highlighted on the speaker overview.
 
 Day headings on the full overview link to the daily pages. Daily pages include
 empty days and link back to the full overview.
@@ -91,9 +104,11 @@ These paths override the default templates:
 * ``pretalx_static_schedule/schedule.html``: full and daily schedule overviews.
 * ``pretalx_static_schedule/session.html``: session details.
 * ``pretalx_static_schedule/speaker.html``: speaker pages.
+* ``pretalx_static_schedule/speaker_overview.html``: alphabetical speaker overview.
 * ``pretalx_static_schedule/track.html``: track pages.
 * ``pretalx_static_schedule/room.html``: room overviews.
 * ``pretalx_static_schedule/speaker_info.html``: shared speaker photo, biography and answers.
+* ``pretalx_static_schedule/speaker_summary.html``: shared speaker summary and optional session links on session pages and the speaker overview.
 * ``pretalx_static_schedule/session_summary.html``: session cards on overview, track, room and speaker pages.
 * ``pretalx_static_schedule/tags.html``: public tag badges.
 * ``pretalx_static_schedule/answers.html``: public session and speaker answers.
@@ -109,7 +124,11 @@ shared navigation template. For example, add this to your override of ``schedule
         <p>Welcome to {{ event.name }}.</p>
     {% endblock %}
 
-The ``speaker_info.html`` template is shared by session and speaker pages.
+The ``speaker_summary.html`` template is shared by session pages and the
+speaker overview. It includes ``speaker_info.html``, which is also used on
+individual speaker pages.
+The overview includes ``speaker_summary.html`` with ``show_all_sessions=True``
+to show the session list even for speakers with only one session.
 The ``session_summary.html`` template uses ``session_prefix`` for relative
 session links. Use ``{{ session_prefix }}{{ slot.submission.code }}.html`` in
 custom session cards.

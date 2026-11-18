@@ -37,6 +37,7 @@ def test_zip_download_from_organiser_interface(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
@@ -97,6 +98,7 @@ def test_download_uses_the_latest_published_schedule(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",

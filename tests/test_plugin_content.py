@@ -340,6 +340,7 @@ def test_remote_plugin_images_become_links(
     assert not page.find("img", src="https://external.example.org/diagram.png")
     assert set(files) == {
         "index.html",
+        "speakers/index.html",
         *day_files,
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
@@ -417,6 +418,7 @@ def test_archived_and_wip_only_sessions_do_not_call_content_hooks(
     assert seen == []
     assert set(files) == {
         "index.html",
+        "speakers/index.html",
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
         "assets/schedule.css",

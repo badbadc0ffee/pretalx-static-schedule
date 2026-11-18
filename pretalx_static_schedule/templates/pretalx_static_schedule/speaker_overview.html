@@ -1,0 +1,21 @@
+{% extends "pretalx_static_schedule/base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Speakers" %} – {{ event.name }}{% endblock %}
+{% block header %}
+    <a href="../index.html">{{ event.name }}</a>
+    <p>{% translate "Schedule version" %} {{ schedule.version }}</p>
+{% endblock %}
+{% block content %}
+    <article class="speaker-overview">
+        <h1>{% translate "Speakers" %}</h1>
+        {% if speakers %}
+            <div class="speaker-list">
+                {% for speaker in speakers %}
+                    {% include "pretalx_static_schedule/speaker_summary.html" with show_all_sessions=True %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>{% translate "No speakers." %}</p>
+        {% endif %}
+    </article>
+{% endblock %}

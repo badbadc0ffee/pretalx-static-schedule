@@ -183,6 +183,7 @@ def test_extracted_site_contains_the_public_page_information(
         names = set(archive.namelist())
         assert {name for name in names if name.endswith(".html")} == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{submission.track_id}.html",
             f"rooms/{slot.room_id}.html",

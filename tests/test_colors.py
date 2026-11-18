@@ -43,6 +43,7 @@ def test_original_variables_stylesheet_is_exported(
         ("index.html", ""),
         ("sessions/TOOLS01.html", "../"),
         ("speakers/ADA0001.html", "../"),
+        ("speakers/index.html", "../"),
     ):
         page = BeautifulSoup((tmp_path / name).read_text(), "html.parser")
         assert [link["href"] for link in page.find_all("link", rel="stylesheet")] == [
@@ -62,7 +63,12 @@ def test_pages_use_the_event_color(published_talk_slot, event, color, settings, 
     response = client.get(event.urls.settings_css)
     assert response.status_code == 200
     original = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", response.content.decode()))
-    for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
+    for name in (
+        "index.html",
+        "sessions/TOOLS01.html",
+        "speakers/ADA0001.html",
+        "speakers/index.html",
+    ):
         page = BeautifulSoup(files[name], "html.parser")
         style = page.find("style")
         assert style is not None

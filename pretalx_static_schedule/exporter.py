@@ -63,6 +63,7 @@ class StaticScheduleExporter(BaseExporter):
         links = {
             self.event.urls.schedule: "index.html",
             self.event.urls.schedule_nojs: "index.html",
+            self.event.urls.speakers: "speakers/index.html",
         } | {
             slots[0].submission.urls.public: f"sessions/{code}.html"
             for code, slots in sessions.items()
@@ -173,8 +174,24 @@ class StaticScheduleExporter(BaseExporter):
                 "pretalx_static_schedule/speaker.html",
                 context | {"speaker": speaker, "asset_prefix": "../"},
             ).encode("utf-8")
+        files["speakers/index.html"] = render_to_string(
+            "pretalx_static_schedule/speaker_overview.html",
+            context
+            | {
+                "speakers": sorted(
+                    speakers_by_code.values(),
+                    key=lambda speaker: (
+                        speaker["profile"].get_display_name().casefold(),
+                        speaker["profile"].code,
+                    ),
+                ),
+                "is_speaker_overview": True,
+                "asset_prefix": "../",
+            },
+        ).encode("utf-8")
         for name in [
             "index.html",
+            "speakers/index.html",
             *(day["filename"] for day in days),
             *(f"tracks/{track.pk}.html" for track in tracks),
             *(f"rooms/{room.pk}.html" for room in rooms),

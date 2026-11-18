@@ -36,6 +36,7 @@ def test_render_returns_a_complete_zip(
             f"rooms/{published_talk_slot.room_id}.html",
             "sessions/TOOLS01.html",
             "speakers/ADA0001.html",
+            "speakers/index.html",
         ]
         assert archive.testzip() is None
         for name in archive.namelist():
@@ -76,6 +77,7 @@ def test_empty_published_schedule_has_a_valid_zip(published_schedule, event, day
     with ZipFile(BytesIO(data)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             "assets/schedule.css",
             "assets/variables.css",
@@ -122,6 +124,7 @@ def test_extracted_zip_includes_images_and_public_files(
     with ZipFile(BytesIO(data)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",

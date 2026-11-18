@@ -39,6 +39,7 @@ def test_empty_published_schedule(published_schedule, event, day_files):
         "assets/variables.css",
         "index.html",
         *day_files,
+        "speakers/index.html",
     ]
     html = files["index.html"].decode("utf-8")
     assertInHTML(f"<h1>{event.name}</h1>", html)

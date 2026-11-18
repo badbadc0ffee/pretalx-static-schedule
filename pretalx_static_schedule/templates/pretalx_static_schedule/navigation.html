@@ -61,4 +61,16 @@
             {% endfor %}
         </ul>
     </nav>
+    <nav class="speaker-navigation" aria-label="{% translate 'Speakers' %}">
+        <h2>{% translate "Speakers" %}</h2>
+        <ul>
+            <li>
+                {% if is_speaker_overview %}
+                    <strong aria-current="page">{% translate "All speakers" %}</strong>
+                {% else %}
+                    <a href="{{ asset_prefix }}speakers/index.html">{% translate "All speakers" %}</a>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
 </div>

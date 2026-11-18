@@ -74,6 +74,7 @@ def test_shared_speakers_have_one_page_each(
         files = StaticScheduleExporter(event).get_files()
 
     assert {name for name in files if name.startswith("speakers/")} == {
+        "speakers/index.html",
         "speakers/ADA0001.html",
         f"speakers/{second_speaker.code}.html",
     }
@@ -81,6 +82,11 @@ def test_shared_speakers_have_one_page_each(
         assertInHTML(
             "<h1>Ada Example</h1>", files[f"speakers/{speaker.code}.html"].decode()
         )
+    overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
+    assert {
+        link["href"] for link in overview.select(".speaker-list > .speaker > h2 > a")
+    } == {f"{speaker.code}.html" for speaker in (published_speaker, second_speaker)}
+    assert len(overview.select(".speaker-list > .speaker")) == 2
 
 
 @pytest.mark.parametrize("reason", ("archived", "wip", "unscheduled", "unconfirmed"))
@@ -115,23 +121,34 @@ def test_speaker_pages_use_only_current_published_sessions(
         files = StaticScheduleExporter(event).get_files()
 
     assert {name for name in files if name.startswith("speakers/")} == {
-        "speakers/ADA0001.html"
+        "speakers/index.html",
+        "speakers/ADA0001.html",
     }
     assert f"speakers/{excluded.code}.html" not in files
     assert f"speakers/{unused.code}.html" not in files
+    overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
+    assert [
+        link["href"] for link in overview.select(".speaker-list > .speaker > h2 > a")
+    ] == ["ADA0001.html"]
 
 
-def test_empty_schedule_has_no_speaker_pages(published_schedule, event, day_files):
+def test_empty_schedule_has_no_individual_speaker_pages(
+    published_schedule, event, day_files
+):
     with scope(event=event):
         SpeakerProfile.objects.create(event=event, name="Unused speaker")
         files = StaticScheduleExporter(event).get_files()
 
     assert set(files) == {
         "index.html",
+        "speakers/index.html",
         "assets/schedule.css",
         "assets/variables.css",
         *day_files,
     }
+    overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
+    assert "No speakers." in overview.select_one(".speaker-overview").get_text()
+    assert not overview.select(".speaker-list")
 
 
 @pytest.mark.parametrize("has_biography", (True, False))

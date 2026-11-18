@@ -191,6 +191,7 @@ def test_local_recording_stays_external_in_any_directory(
         archive.extractall(tmp_path)
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
@@ -297,6 +298,7 @@ def test_recording_link_does_not_require_the_file_to_be_available(
 
     assert set(files) == {
         "index.html",
+        "speakers/index.html",
         f"tracks/{published_talk_slot.submission.track_id}.html",
         f"rooms/{published_talk_slot.room_id}.html",
         *day_files,
@@ -363,6 +365,7 @@ def test_organiser_download_includes_only_current_session_recordings(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",
@@ -403,6 +406,7 @@ def test_organiser_download_links_to_recording_without_copying_it(
     with ZipFile(BytesIO(response.content)) as archive:
         assert set(archive.namelist()) == {
             "index.html",
+            "speakers/index.html",
             *day_files,
             f"tracks/{published_talk_slot.submission.track_id}.html",
             f"rooms/{published_talk_slot.room_id}.html",

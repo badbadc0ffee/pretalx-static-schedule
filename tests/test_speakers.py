@@ -21,7 +21,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.parametrize("repeated", (False, True))
-def test_one_speaker_submission_has_no_submission_list(
+def test_single_talk_is_listed_in_the_speaker_overview_and_omitted_on_the_talk_page(
     published_talk_slot, event, repeated
 ):
     with scope(event=event):
@@ -54,11 +54,23 @@ def test_one_speaker_submission_has_no_submission_list(
         files = StaticScheduleExporter(event).get_files()
 
     page = BeautifulSoup(files["sessions/TOOLS01.html"], "html.parser")
-    section = page.find(id=f"speaker-{speaker.code}")
-    assert section.find("h2").get_text(strip=True) == "Ada Example"
-    assertInHTML("<p>Builds <strong>small tools</strong>.</p>", str(section))
-    assert section.select_one(".speaker-sessions") is None
-    assert section.find("h3") is None
+    for name in ("sessions/TOOLS01.html", "speakers/index.html"):
+        section = BeautifulSoup(files[name], "html.parser").find(
+            id=f"speaker-{speaker.code}"
+        )
+        assert section.find("h2").get_text(strip=True) == "Ada Example"
+        assertInHTML("<p>Builds <strong>small tools</strong>.</p>", str(section))
+        if name == "sessions/TOOLS01.html":
+            assert section.select_one(".speaker-sessions") is None
+            assert section.find("h3") is None
+        else:
+            appearances = section.select_one(".speaker-sessions")
+            assert appearances is not None
+            assert [
+                link["href"] for link in appearances.select("li > a:not(.room)")
+            ] == ["../sessions/TOOLS01.html"] * (2 if repeated else 1)
+            assert section.h3.get_text() == "Sessions"
+        assert "WIP appearance" not in section.get_text()
     assert len(page.select(".session-times > li")) == (2 if repeated else 1)
     assert "sessions/WIP001.html" not in files
     speaker_page = BeautifulSoup(files["speakers/ADA0001.html"], "html.parser")
@@ -70,7 +82,9 @@ def test_one_speaker_submission_has_no_submission_list(
     assert "WIP appearance" not in speaker_page.get_text()
 
 
-@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+@pytest.mark.parametrize(
+    "page", ("sessions/TOOLS01.html", "speakers/ADA0001.html", "speakers/index.html")
+)
 def test_public_speaker_answers(published_talk_slot, event, page):
     with scope(event=event):
         speaker = published_talk_slot.submission.sorted_speakers.first()
@@ -104,7 +118,9 @@ def test_public_speaker_answers(published_talk_slot, event, page):
     assert "Reviewer answer" not in html
 
 
-@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+@pytest.mark.parametrize(
+    "page", ("sessions/TOOLS01.html", "speakers/ADA0001.html", "speakers/index.html")
+)
 def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, page):
     uploads, image_data = image_uploads
     with scope(event=event):
@@ -290,7 +306,11 @@ def test_all_speaker_appearances_use_current_published_slots(
         )
         files = StaticScheduleExporter(event).get_files()
 
-    for name in ("sessions/TOOLS01.html", "sessions/OTHER01.html"):
+    for name, prefix in (
+        ("sessions/TOOLS01.html", ""),
+        ("sessions/OTHER01.html", ""),
+        ("speakers/index.html", "../sessions/"),
+    ):
         page = BeautifulSoup(files[name].decode("utf-8"), "html.parser")
         section = page.find(id=f"speaker-{speaker.code}")
         appearances = section.select_one(".speaker-sessions")
@@ -301,9 +321,9 @@ def test_all_speaker_appearances_use_current_published_slots(
             repeated_start.isoformat(),
         ]
         assert [link["href"] for link in appearances.select("li > a:not(.room)")] == [
-            "TOOLS01.html",
-            "OTHER01.html",
-            "TOOLS01.html",
+            prefix + "TOOLS01.html",
+            prefix + "OTHER01.html",
+            prefix + "TOOLS01.html",
         ]
         text = appearances.get_text(" ", strip=True)
         for value in (
@@ -318,6 +338,18 @@ def test_all_speaker_appearances_use_current_published_slots(
         assert "Room A" not in text
         assert "WIP appearance" not in text
         assert len(section.select(".speaker-sessions > li")) == 3
+    overview = BeautifulSoup(files["speakers/index.html"], "html.parser")
+    assert [
+        section.h2.get_text(strip=True)
+        for section in overview.select(".speaker-list > .speaker")
+    ] == ["Ada Example", "Bob Example"]
+    bob_appearances = overview.select_one(
+        ".speaker-list > .speaker:last-child .speaker-sessions"
+    )
+    assert bob_appearances is not None
+    assert [link["href"] for link in bob_appearances.select("li > a:not(.room)")] == [
+        "../sessions/OTHER01.html"
+    ]
     assert "sessions/WIP001.html" not in files
     assert BeautifulSoup(
         files["sessions/OTHER01.html"].decode("utf-8"), "html.parser"

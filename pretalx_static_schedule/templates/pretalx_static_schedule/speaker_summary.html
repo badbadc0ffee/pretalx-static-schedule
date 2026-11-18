@@ -1,0 +1,29 @@
+{% load i18n tz %}
+<section class="speaker" id="speaker-{{ speaker.profile.code }}">
+    <h2>
+        <a href="{{ speaker.profile.urls.public }}">{{ speaker.profile.get_display_name }}</a>
+    </h2>
+    {% include "pretalx_static_schedule/speaker_info.html" %}
+    {% if show_all_sessions or speaker.submission_count > 1 %}
+        <h3>{% translate "Sessions" %}</h3>
+        {% timezone event.timezone %}
+            <ul class="speaker-sessions">
+                {% for slot in speaker.slots %}
+                    <li>
+                        <a href="{{ slot.submission.urls.public }}">{{ slot.submission.title }}</a>
+                        {{ slot.start|date:"DATE_FORMAT" }}:
+                        <time datetime="{{ slot.start|date:'c' }}">{{ slot.start|date:"H:i" }}</time>–<time
+                            datetime="{{ slot.end|date:'c' }}"
+                        >{{ slot.end|date:"H:i" }}</time>
+                        · {{ slot.duration }} {% translate "min" %},
+                        <a
+                            class="room"
+                            href="{{ asset_prefix }}rooms/{{ slot.room_id }}.html"
+                            title="{{ slot.room.description|default:'' }}"
+                        >{{ slot.room.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endtimezone %}
+    {% endif %}
+</section>

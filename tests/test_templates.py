@@ -40,7 +40,12 @@ def test_default_templates(published_talk_slot, event):
     assert Path(get_template("pretalx_static_schedule/recording.html").origin.name) == (
         template_root / "pretalx_static_schedule/recording.html"
     )
-    for name in ("speaker_info.html", "session_summary.html", "tags.html"):
+    for name in (
+        "speaker_info.html",
+        "speaker_summary.html",
+        "session_summary.html",
+        "tags.html",
+    ):
         assert Path(get_template(f"pretalx_static_schedule/{name}").origin.name) == (
             template_root / f"pretalx_static_schedule/{name}"
         )
@@ -52,6 +57,7 @@ def test_default_templates(published_talk_slot, event):
             f"Building &lt;tools&gt; – {event.name}",
         ),
         ("speaker.html", "speakers/ADA0001.html", f"Ada Example – {event.name}"),
+        ("speaker_overview.html", "speakers/index.html", f"Speakers – {event.name}"),
     ):
         template_name = f"pretalx_static_schedule/{name}"
         assert (
@@ -75,6 +81,12 @@ def test_default_templates(published_talk_slot, event):
             "speaker.html",
             "speakers/ADA0001.html",
             "speaker.profile.get_display_name",
+            "Ada Example",
+        ),
+        (
+            "speaker_overview.html",
+            "speakers/index.html",
+            "speakers.0.profile.get_display_name",
             "Ada Example",
         ),
     ),
@@ -149,6 +161,7 @@ def test_base_override_changes_all_pages(
         ("schedule.html", "index.html"),
         ("session.html", "sessions/TOOLS01.html"),
         ("speaker.html", "speakers/ADA0001.html"),
+        ("speaker_overview.html", "speakers/index.html"),
     ),
 )
 def test_override_extends_default_page(
@@ -168,10 +181,14 @@ def test_override_extends_default_page(
     assert Path(get_template(template_name).origin.name) == override
     html = files[output].decode("utf-8")
     assertInHTML(f"<p>Custom note {event.name}</p>", html)
-    assert "Building &lt;tools&gt;" in html
-    assertInHTML(
-        f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>', html
-    )
+    if name == "speaker_overview.html":
+        assertInHTML('<a href="ADA0001.html">Ada Example</a>', html)
+    else:
+        assert "Building &lt;tools&gt;" in html
+        assertInHTML(
+            f'<time datetime="{published_talk_slot.start.isoformat()}">10:00</time>',
+            html,
+        )
 
 
 def test_answers_template_override(published_talk_slot, event, template_directory):
@@ -215,7 +232,9 @@ def test_answers_template_override(published_talk_slot, event, template_director
     assert "submission: Public answer" not in speaker_html
 
 
-@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/ADA0001.html"))
+@pytest.mark.parametrize(
+    "page", ("sessions/TOOLS01.html", "speakers/ADA0001.html", "speakers/index.html")
+)
 def test_speaker_information_template_override(
     published_speaker, event, template_directory, page
 ):
@@ -233,6 +252,29 @@ def test_speaker_information_template_override(
     html = files[page].decode("utf-8")
     assertInHTML(
         '<aside class="custom-speaker"><p>Custom Ada Example</p></aside>', html
+    )
+    assert 'class="biography"' not in html
+
+
+@pytest.mark.parametrize("page", ("sessions/TOOLS01.html", "speakers/index.html"))
+def test_speaker_summary_template_override(
+    published_speaker, event, template_directory, page
+):
+    template_name = "pretalx_static_schedule/speaker_summary.html"
+    override = template_directory / template_name
+    override.parent.mkdir()
+    override.write_text(
+        '<section class="custom-summary"><h2>{{ speaker.profile.get_display_name }}</h2>'
+        "<p>Talk count: {{ speaker.submission_count }}</p></section>"
+    )
+    with scope(event=event):
+        files = StaticScheduleExporter(event).get_files()
+
+    assert Path(get_template(template_name).origin.name) == override
+    html = files[page].decode("utf-8")
+    assertInHTML(
+        '<section class="custom-summary"><h2>Ada Example</h2><p>Talk count: 1</p></section>',
+        html,
     )
     assert 'class="biography"' not in html
 
