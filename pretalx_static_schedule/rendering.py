@@ -272,6 +272,13 @@ class ScheduleRenderData:
                 )
         return speaker | {
             "view": view,
+            "answers": speaker["answers"]
+            if view == "detail"
+            else [
+                answer
+                for answer in speaker["answers"]
+                if answer.question.variant != "file"
+            ],
             "attributes": speaker["attributes"] | {"data-view": view},
             "presentations": presentations,
             "relationship_mode": "summaries" if expand else "references",

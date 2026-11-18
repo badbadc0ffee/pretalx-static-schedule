@@ -17,11 +17,10 @@
                         src="{{ banner_url }}"
                         alt="{{ metadata.title }}"
                     >{% endif %}
-                {% local_asset metadata.logo as logo_url %}
-                <a data-field="event" href="{{ page.asset_prefix }}index.html">{% if logo_url %}<img
-                            src="{{ logo_url }}"
-                            alt=""
-                        >{% endif %}{{ metadata.title }}</a>
+                <a data-field="event" href="{{ page.asset_prefix }}index.html"><img
+                        src="{{ page.asset_prefix }}assets/logo.svg"
+                        alt="40C3"
+                    ></a>
                 <dl>
                     <div data-field="schedule-version">
                         <dt aria-label="Schedule version"></dt>

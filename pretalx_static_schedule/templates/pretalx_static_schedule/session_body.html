@@ -1,0 +1,20 @@
+{% load static_schedule %}
+{% if session.view == "detail" %}
+    {% local_asset session.image as image_url %}
+    {% if image_url %}<a data-field="image" href="{{ image_url }}"><img
+                src="{{ image_url }}"
+                alt="This session’s header image"
+            ></a>{% endif %}
+{% endif %}
+{% if session.abstract %}<div
+        data-field="abstract"
+        {% if session.language %}lang="{{ session.language }}"{% endif %}
+    >
+        {{ session.abstract|schedule_text:heading_level }}
+    </div>{% endif %}
+{% if session.view == "detail" and session.description %}<div
+        data-field="description"
+        {% if session.language %}lang="{{ session.language }}"{% endif %}
+    >
+        {{ session.description|schedule_text:heading_level }}
+    </div>{% endif %}

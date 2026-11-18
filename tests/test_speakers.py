@@ -159,11 +159,17 @@ def test_speaker_downloads_and_full_size_photo(image_uploads, event, tmp_path, p
         'article[data-kind="speaker"]'
     )
     document = answers[0].answer_file
-    assertInHTML(
-        f'<a href="../media/{quote(document.name)}">{document}</a>', str(section)
-    )
+    if page == "speakers/ADA0001.html":
+        assertInHTML(
+            f'<a href="../media/{quote(document.name)}">{document}</a>', str(section)
+        )
+        assert section.select_one('[data-state="no-file"]')
+    else:
+        assert not section.find("a", href=f"../media/{quote(document.name)}")
+        assert not section.select_one('[data-state="no-file"]')
+        assert "Public document" not in section.get_text()
+        assert "Missing document" not in section.get_text()
     assert (tmp_path / f"media/{document.name}").read_bytes() == b"Document"
-    assert section.select_one('[data-state="no-file"]')
     assert "Private document" not in section.get_text()
     image = section.find("img")
     assert (tmp_path / f"media/{uploads['avatar'].name}").read_bytes() == image_data

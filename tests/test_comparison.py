@@ -49,7 +49,8 @@ def test_export_is_english_regardless_of_the_online_page_language(
     for name in ("index.html", "sessions/TOOLS01.html", "speakers/ADA0001.html"):
         page = BeautifulSoup(files[name].decode("utf-8"), "html.parser")
         assert page.html["lang"] == "en"
-        assert "Fancy testevent" in page.header.get_text()
+        assert "Fancy testevent" in page.title.get_text()
+        assert "Fancy testevent" not in page.header.get_text()
 
 
 @pytest.mark.parametrize("deployment", ("/", "/conference/2026/"))
@@ -199,7 +200,10 @@ def test_extracted_site_contains_the_public_page_information(
             == b"Public speaker document"
         )
         assert archive.read(f"media/{handout.resource.name}") == b"Public handout"
-        for upload in uploads.values():
+        for key, upload in uploads.items():
+            if key == "logo":
+                assert f"media/{upload.name}" not in names
+                continue
             assert archive.read(f"media/{upload.name}") == image_data
 
     schedule = BeautifulSoup((tmp_path / "index.html").read_text(), "html.parser")
@@ -272,7 +276,6 @@ def test_extracted_site_contains_the_public_page_information(
         for label in (
             "speaker experience",
             "speaker format",
-            "Public speaker document",
             "Workshop",
         ):
             assert label in text(online_speaker)
@@ -282,9 +285,11 @@ def test_extracted_site_contains_the_public_page_information(
         )
         assert experience.find("p").get_text() == "Builds small tools."
         assert experience.find("strong").get_text() == "small tools"
-        assert page.find(
+        download = page.find(
             "a", href="../" + quote(f"media/{speaker_document.answer_file.name}")
         )
+        assert bool(download) == (page is speaker_page)
+        assert ("Public speaker document" in text(page)) == (page is speaker_page)
     assert (
         online_speaker.select_one(".speaker-avatar a")["href"] == uploads["avatar"].url
     )

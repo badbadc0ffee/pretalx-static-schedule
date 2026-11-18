@@ -60,7 +60,7 @@ def test_render_returns_a_complete_zip(
     )
     detail = (root / "sessions/TOOLS01.html").read_text(encoding="utf-8")
     assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', detail)
-    assertInHTML(f'<a data-field="event" href="../index.html">{event.name}</a>', detail)
+    assertInHTML('<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>', detail)
     assert "Room A" in detail
     assert "Ada Example" in detail
     assertInHTML(
@@ -125,7 +125,9 @@ def test_extracted_zip_includes_images_and_public_files(
         _, _, data = StaticScheduleExporter(event).render(request=None)
 
     expected_uploads = {
-        f"media/{upload.name}": image_data for upload in uploads.values()
+        f"media/{upload.name}": image_data
+        for key, upload in uploads.items()
+        if key != "logo"
     }
     expected_uploads[f"media/{answer.answer_file.name}"] = b"Public document"
     expected_uploads[f"media/{resource.resource.name}"] = b"\x00\xffBinary handout"

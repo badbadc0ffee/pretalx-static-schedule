@@ -60,7 +60,9 @@ def test_every_page_has_the_shared_semantic_shell(
 
         event_link = page.header.select_one('[data-field="event"]')
         assert event_link["href"] == prefix + "index.html"
-        assert event_link.get_text() == "Event & <Example>"
+        assert not event_link.get_text()
+        assert event_link.img["alt"] == "40C3"
+        assert event_link.img["src"] == prefix + "assets/logo.svg"
         for field, label, value in (
             ("schedule-version", "Schedule version", "1.0"),
             ("timezone", "Timezone", event.timezone),
@@ -71,14 +73,13 @@ def test_every_page_has_the_shared_semantic_shell(
             assert not facts[0].dt.get_text()
             assert facts[0].dd.get_text() == value
 
-        assert len(page.header.find_all("img")) == (2 if images else 0)
+        assert len(page.header.find_all("img")) == (2 if images else 1)
         if images:
-            logo = event_link.img
-            assert logo["alt"] == ""
-            assert logo["src"] == prefix + quote(f"media/{uploads['logo'].name}")
             banner = page.header.select_one('[data-field="banner"]')
             assert banner["alt"] == "Event & <Example>"
             assert banner["src"] == prefix + quote(f"media/{uploads['header'].name}")
+
+        assert quote(f"media/{uploads['logo'].name}") not in files
 
         source = page.footer.a
         assert source["href"] == event.urls.schedule.full()

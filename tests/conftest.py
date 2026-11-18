@@ -104,6 +104,7 @@ def stylesheet_files():
         "assets/fonts/Hack-Italic.woff2",
         "assets/fonts/Hack-BoldItalic.woff2",
         "assets/fonts/Hack-License.txt",
+        "assets/logo.svg",
     ]
 
 

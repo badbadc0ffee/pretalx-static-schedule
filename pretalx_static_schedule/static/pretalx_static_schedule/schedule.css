@@ -208,11 +208,6 @@ article[data-kind="speaker"] > [data-field="image"] img {
     border-radius: var(--size-border-radius);
 }
 
-article[data-kind="session"] > [data-field="image"] img {
-    display: block;
-    max-height: 16rem;
-    width: auto;
-}
 
 article > :last-child {
     margin-bottom: 0;
@@ -833,30 +828,6 @@ article[data-kind="speaker"] > [data-field="image"] img {
     border: var(--box-border-width) solid var(--primary);
     border-radius: 0;
 }
-article[data-kind="session"] > [data-field="image"] {
-    float: right;
-    width: fit-content;
-    margin: 0 0 1rem auto;
-}
-article[data-kind="session"] > [data-field="image"] img {
-    max-width: min(12rem, 100%);
-    max-height: 12rem;
-    width: auto;
-    height: auto;
-    border: var(--box-border-width) solid var(--primary);
-    object-fit: contain;
-}
-article[data-kind="session"][data-view="detail"] > [data-field="image"] {
-    order: 3;
-    grid-column: 2;
-    grid-row: span 2;
-    justify-self: end;
-    align-self: start;
-}
-article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
-    grid-column: 1;
-    margin-right: 1.5rem;
-}
 
 /* Tags and recording notices are filled, without an outline. */
 [data-rel="tags"] { margin: 0 0 1rem; }
@@ -917,15 +888,6 @@ article[data-kind="session"][data-view="detail"] > [data-state="recording-forbid
     [data-rel="occurrences"] dl:not([data-field="public-answers"]) > div {
         grid-template-columns: minmax(0, 1fr);
         gap: 0;
-    }
-    article[data-kind="session"] > [data-field="image"] img { max-width: min(10rem, 100%); max-height: 10rem; }
-    article[data-kind="session"][data-view="detail"] > [data-field="image"] {
-        grid-column: 1 / -1;
-        grid-row: auto;
-    }
-    article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
-        grid-column: 1 / -1;
-        margin-right: 0;
     }
 }
 
@@ -2014,7 +1976,7 @@ body:has(> header nav [aria-current="page"]) > main > h1 {
 /* Use the 40C3 primary green; exported track colors remain intact. */
 :root { --color-primary: #75b54b; }
 
-/* The exported pale logo needs a dark rendering on the light interface. */
+/* The bundled event logo supplies the masthead identity. */
 header [data-field="event"] {
     display: flex;
     align-items: center;
@@ -2025,49 +1987,74 @@ header [data-field="event"] img {
     width: auto;
     max-width: min(12rem, 45vw);
     max-height: 6rem;
-    filter: brightness(0);
 }
 
-/* Keep session images independent of the compact language-column width. */
-article[data-kind="session"][data-view="detail"] {
-    --session-image-width: 12rem;
-    --image-column-width: var(--session-box-size);
+/* Keep the session artwork and authored prose in one text flow. */
+article[data-kind="session"][data-view="detail"] > [data-field="content"] {
+    display: flow-root;
+    order: 3;
 }
 
-article[data-kind="session"][data-view="detail"] > [data-field="image"] {
-    grid-column: -2 / -1;
-    width: max-content;
-    max-width: var(--session-image-width);
-    margin: 0;
-    justify-self: end;
+article[data-kind="session"][data-view="detail"] > [data-field="content"] > [data-field="image"] {
+    display: block;
+    float: right;
+    max-width: min(16rem, 45%);
+    margin: 0.25rem 0 1rem 1.5rem;
 }
 
-article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
-    grid-column: 1 / -2;
-    margin-right: max(1.5rem, calc(var(--session-image-width) + 1.5rem - var(--image-column-width)));
+article[data-kind="session"][data-view="detail"] > [data-field="content"] > [data-field="image"] img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 16rem;
+    border: var(--box-border-width) solid var(--primary);
+    object-fit: contain;
 }
 
-article[data-kind="session"][data-view="summary"] > [data-field="image"] {
-    flex: 0 1 auto;
-    margin-top: 0.5rem;
-    margin-left: auto;
+article[data-kind="session"][data-view="detail"] > [data-field="content"] > [data-field="abstract"] {
+    font-weight: 700;
 }
 
-@media (min-width: 56.001rem) {
-    article[data-kind="session"][data-view="detail"]:has(> [data-state="recording-forbidden"]) {
-        --image-column-width: 13rem;
-    }
+article[data-kind="session"][data-view="detail"] > [data-field="content"] > [data-field="description"] {
+    margin-top: 1.5rem;
 }
 
-@media (max-width: 44rem) {
-    article[data-kind="session"][data-view="detail"] > [data-field="image"] {
-        grid-column: 1 / -1;
-        grid-row: auto;
-        max-width: 10rem;
-    }
+/* Floats wrap speaker prose consistently in every summary and detail. */
+article[data-kind="speaker"][data-view="summary"] {
+    display: flow-root;
+}
 
-    article[data-kind="session"][data-view="detail"]:has(> [data-field="image"]) > :is([data-field="abstract"], [data-field="description"]) {
-        grid-column: 1 / -1;
-        margin-right: 0;
+article[data-kind="speaker"][data-view] > [data-field="image"] {
+    max-width: min(8rem, 40%);
+}
+
+article[data-kind="speaker"][data-view] > [data-field="image"] img {
+    max-width: 100%;
+    max-height: 8rem;
+}
+
+article[data-kind="speaker"][data-view="summary"] > [data-field="biography"] {
+    display: block;
+    overflow: clip;
+}
+
+article[data-kind="speaker"][data-view="detail"] > [data-field="image"] img {
+    max-height: 10rem;
+}
+
+article[data-kind="speaker"][data-view="detail"] > [data-field="image"] {
+    max-width: min(10rem, 40%);
+}
+
+article[data-kind="speaker"][data-view="detail"] > [data-field="biography"] {
+    max-width: none;
+}
+
+@media (max-width: 30rem) {
+    article[data-kind="session"][data-view="detail"] > [data-field="content"] > [data-field="image"] {
+        float: none;
+        max-width: min(16rem, 100%);
+        margin: 0 0 1rem auto;
     }
 }

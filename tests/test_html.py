@@ -46,7 +46,7 @@ def test_empty_published_schedule(
     html = files["index.html"].decode("utf-8")
     page = BeautifulSoup(html, "html.parser")
     assert page.main.h1["aria-label"] == "All sessions"
-    assert page.select_one('[data-field="event"]').get_text() == str(event.name)
+    assert page.select_one('[data-field="event"] img')["alt"] == "40C3"
     assert page.select_one('[data-field="schedule-version"] dd').get_text() == "1.0"
     assert html.count('data-state="no-sessions"') == event.duration
 
@@ -84,7 +84,7 @@ def test_session_detail(published_talk_slot, event):
         )
 
     assertInHTML('<h1 lang="en">Building &lt;tools&gt;</h1>', html)
-    assertInHTML(f'<a data-field="event" href="../index.html">{event.name}</a>', html)
+    assertInHTML('<a data-field="event" href="../index.html"><img src="../assets/logo.svg" alt="40C3"></a>', html)
     assertInHTML(
         f'<time datetime="{published_talk_slot.start.isoformat()}">{date_format(published_talk_slot.start.astimezone(event.tz), "F j, Y, H:i")}</time>',
         html,

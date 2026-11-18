@@ -34,7 +34,7 @@ def test_speaker_page_uses_the_shared_layout(published_speaker, event, tmp_path,
     assert page.find("h1").get_text() == name
     assert page.title.get_text() == f"{name} – {event.name}"
     assert page.header.find("a")["href"] == "../index.html"
-    assert page.header.find("a").get_text() == str(event.name)
+    assert page.header.find("a").img["alt"] == "40C3"
     assert page.find("link", rel="stylesheet", href="../assets/schedule.css")
     assert "Europe/Berlin" in page.header.get_text()
     assert parse_html(html)

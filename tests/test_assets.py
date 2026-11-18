@@ -32,17 +32,20 @@ class HTMLReferences(HTMLParser):
         )
 
 
-def test_event_images_are_local(image_uploads, event):
+def test_bundled_logo_replaces_the_uploaded_logo_and_banner_stays_local(image_uploads, event):
     uploads, contents = image_uploads
     with scope(event=event):
         files = StaticScheduleExporter(event).get_files()
 
-    for key in ("logo", "header"):
-        path = f"media/{uploads[key].name}"
-        assert files[path] == contents
-        for page, prefix in (("index.html", ""), ("sessions/TOOLS01.html", "../")):
-            html = files[page].decode("utf-8")
-            assert prefix + quote(path) in HTMLReferences(html).references
+    logo = Path(finders.find("pretalx_static_schedule/logo.svg"))
+    assert files["assets/logo.svg"] == logo.read_bytes()
+    assert f"media/{uploads['logo'].name}" not in files
+    path = f"media/{uploads['header'].name}"
+    assert files[path] == contents
+    for page, prefix in (("index.html", ""), ("sessions/TOOLS01.html", "../")):
+        html = files[page].decode("utf-8")
+        assert prefix + quote(path) in HTMLReferences(html).references
+        assert prefix + "assets/logo.svg" in HTMLReferences(html).references
 
 
 def test_session_and_speaker_images_are_local(image_uploads, event):

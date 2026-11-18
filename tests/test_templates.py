@@ -46,6 +46,7 @@ def test_default_templates(published_talk_slot, event):
         "speaker_info.html",
         "speaker_summary.html",
         "session_summary.html",
+        "session_body.html",
         "tags.html",
     ):
         assert Path(get_template(f"pretalx_static_schedule/{name}").origin.name) == (

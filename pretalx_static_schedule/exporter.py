@@ -101,6 +101,9 @@ class StaticScheduleExporter(BaseExporter):
             files[f"assets/fonts/{name}"] = Path(
                 finders.find(f"pretalx_static_schedule/fonts/{name}")
             ).read_bytes()
+        files["assets/logo.svg"] = Path(
+            finders.find("pretalx_static_schedule/logo.svg")
+        ).read_bytes()
         context = {
             "event": self.event,
             "schedule": schedule,
